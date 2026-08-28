@@ -66,7 +66,7 @@ cd bboard-ui
 npm run build:start
 ```
 
-The UI will be available at **http://127.0.0.1:8080**.
+The UI will be available at **http://127.0.0.1:8085**.
 
 ### Lace Wallet Setup
 
