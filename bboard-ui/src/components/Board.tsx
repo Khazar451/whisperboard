@@ -15,7 +15,7 @@ import {
   Backdrop,
   CircularProgress,
 } from '@mui/material';
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import ShieldIcon from '@mui/icons-material/Shield';
 import StopIcon from '@mui/icons-material/HighlightOffOutlined';
 import { type BBoardDerivedState, type DeployedBBoardAPI } from '../../../api/src/index';
@@ -206,7 +206,7 @@ export const Board: React.FC<Readonly<BoardProps>> = ({ boardDeployment$ }) => {
                 data-testid="board-take-down-message-btn"
                 sx={{ color: 'error.light', '&:hover': { bgcolor: 'rgba(239,68,68,0.1)' } }}
               >
-                <DeleteOutlineIcon fontSize="small" />
+                <DeleteOutlinedIcon fontSize="small" />
               </IconButton>
             </Tooltip>
           ) : (
