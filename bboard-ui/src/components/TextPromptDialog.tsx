@@ -1,18 +1,4 @@
-// This file is part of midnightntwrk/example-bboard.
-// Copyright (C) Midnight Foundation
-// SPDX-License-Identifier: Apache-2.0
-// Licensed under the Apache License, Version 2.0 (the "License");
-// You may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
+// WhisperBoard — TextPromptDialog for Joining existing contracts
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Typography } from '@mui/material';
 import React, { useState } from 'react';
 
@@ -31,15 +17,31 @@ export interface TextPromptDialogProps {
 }
 
 /**
- * A simple modal dialog that prompts the user for a single piece of textual data.
+ * A modal dialog that prompts the user to enter a contract address to join.
  */
 export const TextPromptDialog: React.FC<Readonly<TextPromptDialogProps>> = ({ prompt, isOpen, onCancel, onSubmit }) => {
   const [text, setText] = useState<string>('');
 
   return (
-    <Dialog open={isOpen} onClose={onCancel} fullWidth maxWidth="sm">
+    <Dialog
+      open={isOpen}
+      onClose={onCancel}
+      fullWidth
+      maxWidth="sm"
+      slotProps={{
+        paper: {
+          sx: {
+            bgcolor: 'background.paper',
+            border: '1px solid',
+            borderColor: 'divider',
+            borderRadius: 3,
+            p: 1,
+          },
+        },
+      }}
+    >
       <DialogTitle>
-        <Typography variant="body1" color="black" data-testid="textprompt-dialog-title">
+        <Typography variant="h6" color="text.primary" sx={{ fontWeight: 700 }}>
           {prompt}
         </Typography>
       </DialogTitle>
@@ -47,36 +49,34 @@ export const TextPromptDialog: React.FC<Readonly<TextPromptDialogProps>> = ({ pr
         <TextField
           id="text-prompt"
           variant="outlined"
-          focused
           fullWidth
+          placeholder="e.g. 0200dbf964f541e1950883f5b2f539b66fd6111e46ce8e6e9551fbdd180114d5dd5b"
           size="small"
           color="primary"
           autoComplete="off"
-          slotProps={{ htmlInput: { style: { color: 'black' } } }}
+          value={text}
           onChange={(e) => {
-            setText(e.target.value);
+            setText(e.target.value.trim());
           }}
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-member-access
-          inputRef={(input) => input?.focus()}
-          data-testid="textprompt-dialog-text-prompt"
+          sx={{ mt: 1 }}
         />
       </DialogContent>
 
-      <DialogActions>
-        <Button variant="contained" data-testid="textprompt-dialog-cancel-btn" disableElevation onClick={onCancel}>
+      <DialogActions sx={{ px: 3, pb: 2 }}>
+        <Button variant="outlined" color="inherit" onClick={onCancel} sx={{ textTransform: 'none' }}>
           Cancel
         </Button>
         <Button
           variant="contained"
-          data-testid="textprompt-dialog-ok-btn"
+          color="primary"
           disabled={!text.length}
-          disableElevation
           onClick={() => {
             onSubmit(text);
+            setText('');
           }}
-          type="submit"
+          sx={{ textTransform: 'none', px: 3 }}
         >
-          OK
+          Join
         </Button>
       </DialogActions>
     </Dialog>
