@@ -10,7 +10,7 @@
 
 ##  Quick Links
 -  **Demo Video (≤ 2 Min):** *(https://www.youtube.com/watch?v=rgt2bESOK5c)*
--  **Devpost Submission:** *
+-  **Devpost Submission:** *(https://devpost.com/software/whisperboard-y7fcrh)*
 -  **Midnight Documentation:** [docs.midnight.network ↗](https://docs.midnight.network/)
 
 ---
