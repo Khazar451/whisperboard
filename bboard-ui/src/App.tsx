@@ -17,7 +17,7 @@ const STORAGE_KEY = 'whisperboard_known_contracts';
  * The root WhisperBoard application component.
  *
  * @remarks
- * Renders a compose bar at the top and a vertical feed of anonymous whispers below.
+ * Renders an authentic X / Twitter style feed of anonymous whispers.
  * Manages contract address discovery, localStorage persistence, and multi-device sync via URL hash/params.
  */
 const App: React.FC = () => {
@@ -132,60 +132,52 @@ const App: React.FC = () => {
     [boardApiProvider],
   );
 
+  const handleFocusCompose = () => {
+    const el = document.querySelector('textarea');
+    if (el) {
+      el.focus();
+    }
+  };
+
   return (
-    <Box sx={{ bgcolor: 'background.default', minHeight: '100vh' }}>
+    <Box sx={{ bgcolor: '#000000', minHeight: '100vh', color: '#e7e9ea' }}>
       <MainLayout
         onJoinClick={() => setJoinDialogOpen(true)}
         knownContractsCount={knownAddresses.length}
+        onComposeClick={handleFocusCompose}
       >
-        {/* Compose bar with Depth and Stepper */}
+        {/* Inline X Compose Box */}
         <ComposeBar onPost={handlePost} isPosting={isPosting} />
 
-        {/* Feed of whispers (newest first) */}
+        {/* Feed of tweets/whispers (newest first) */}
         {[...boardDeployments].reverse().map((boardDeployment, idx) => (
           <div data-testid={`board-${idx}`} key={`board-${idx}`}>
             <Board boardDeployment$={boardDeployment} />
           </div>
         ))}
 
-        {/* Empty state with Glassmorphism container */}
+        {/* Empty state (X / Twitter style) */}
         {boardDeployments.length === 0 && (
           <Box
             sx={{
               textAlign: 'center',
-              py: 7,
+              py: 8,
               px: 4,
-              borderRadius: 4,
-              bgcolor: 'rgba(21, 23, 34, 0.45)',
-              backdropFilter: 'blur(12px)',
-              border: '1px dashed rgba(255, 255, 255, 0.08)',
-              boxShadow: '0 8px 24px -4px rgba(0, 0, 0, 0.4)',
+              borderBottom: '1px solid #2f3336',
             }}
           >
-            <Typography
-              variant="h4"
-              sx={{
-                mb: 1.5,
-                background: 'linear-gradient(135deg, #a78bfa 0%, #22d3ee 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                fontSize: '2.5rem',
-              }}
-            >
+            <Typography sx={{ fontSize: '2.5rem', mb: 1.5 }}>
               🤫
             </Typography>
             <Typography
-              variant="h6"
-              sx={{ color: 'text.primary', mb: 1, fontWeight: 700, letterSpacing: '-0.025em' }}
+              sx={{ fontWeight: 800, fontSize: '1.4rem', color: '#e7e9ea', mb: 1, letterSpacing: '-0.03em' }}
             >
-              No whispers in feed yet
+              Welcome to WhisperBoard!
             </Typography>
             <Typography
-              variant="body2"
-              sx={{ color: 'text.secondary', maxWidth: 400, mx: 'auto', lineHeight: 1.6 }}
+              sx={{ color: '#71767b', fontSize: '0.9375rem', maxWidth: 380, mx: 'auto', lineHeight: 1.5 }}
             >
-              Be the first to share something anonymously. Your identity is protected by zero-knowledge
-              proofs — no one, not even the blockchain, knows who you are.
+              This is the beginning of your shielded feed. Speak freely — every post is proven locally on your machine and protected by Midnight zero-knowledge cryptography.
             </Typography>
           </Box>
         )}

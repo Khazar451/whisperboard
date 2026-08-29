@@ -1,5 +1,4 @@
-// WhisperBoard — Anonymous Group Feedback on Midnight
-// Compose bar with Glassmorphism, Ambient Depth, and Multi-Step ZK Proving Stepper
+// WhisperBoard — Inline Compose Box (X / Twitter Style)
 
 import React, { useEffect, useState } from 'react';
 import {
@@ -7,11 +6,15 @@ import {
   TextField,
   Button,
   Typography,
+  Avatar,
+  IconButton,
+  Tooltip,
   LinearProgress,
   Fade,
 } from '@mui/material';
 import LockIcon from '@mui/icons-material/Lock';
-import SendIcon from '@mui/icons-material/Send';
+import ShieldIcon from '@mui/icons-material/Shield';
+import LanguageIcon from '@mui/icons-material/Language';
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 import ShieldMoonIcon from '@mui/icons-material/ShieldMoon';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
@@ -24,30 +27,26 @@ interface ComposeBarProps {
 const PROVING_STEPS = [
   {
     label: 'Constructing Private Witness...',
-    detail: 'Deriving secret key commitment in local memory',
+    detail: 'Generating secret key in browser memory',
     icon: AutoFixHighIcon,
   },
   {
     label: 'Evaluating ZK-SNARK Circuit...',
-    detail: 'Generating zero-knowledge proof locally via proof server',
+    detail: 'Generating proof locally via Docker :6300',
     icon: ShieldMoonIcon,
   },
   {
-    label: 'Submitting State Transition to Midnight Ledger...',
-    detail: 'Broadcasting shielded transaction to Preprod network',
+    label: 'Submitting to Midnight Ledger...',
+    detail: 'Broadcasting transaction to Preprod network',
     icon: CloudUploadIcon,
   },
 ];
 
-/**
- * A sticky compose bar featuring glassmorphic depth and a 3-step ZK-SNARK proving stepper.
- */
 export const ComposeBar: React.FC<ComposeBarProps> = ({ onPost, isPosting }) => {
   const [message, setMessage] = useState('');
   const [currentStep, setCurrentStep] = useState(0);
-  const [isFocused, setIsFocused] = useState(false);
 
-  // Progressive phase animation during ~20s local proof generation
+  // Progressive phase timer during ~20s local proof generation
   useEffect(() => {
     if (!isPosting) {
       setCurrentStep(0);
@@ -77,171 +76,149 @@ export const ComposeBar: React.FC<ComposeBarProps> = ({ onPost, isPosting }) => 
       component="form"
       onSubmit={handleSubmit}
       sx={{
-        p: 2.5,
-        mb: 4,
-        bgcolor: 'rgba(21, 23, 34, 0.85)',
-        backdropFilter: 'blur(20px)',
-        borderRadius: 3.5,
-        border: '1px solid',
-        borderColor: isFocused ? 'rgba(139, 92, 246, 0.45)' : 'rgba(255, 255, 255, 0.08)',
-        boxShadow: isFocused
-          ? '0 12px 36px -4px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(139, 92, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08)'
-          : '0 8px 32px -4px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
-        transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+        display: 'flex',
+        gap: 1.5,
+        p: 2,
+        borderBottom: '1px solid #2f3336',
+        bgcolor: '#000000',
       }}
     >
-      <TextField
-        fullWidth
-        multiline
-        rows={2}
-        placeholder="Whisper something anonymously... (Protected by Midnight ZK-SNARKs)"
-        value={message}
-        onChange={(e) => setMessage(e.target.value)}
-        onFocus={() => setIsFocused(true)}
-        onBlur={() => setIsFocused(false)}
-        disabled={isPosting}
-        variant="standard"
-        slotProps={{
-          input: {
-            disableUnderline: true,
-            sx: {
-              color: 'text.primary',
-              fontSize: '0.9375rem',
-              lineHeight: 1.6,
-            },
-          },
-        }}
-      />
-
-      {/* Multi-step ZK Proving Stepper during active proof generation */}
-      {isPosting && (
-        <Fade in={isPosting}>
-          <Box
-            sx={{
-              mt: 2,
-              pt: 2,
-              borderTop: '1px solid rgba(255, 255, 255, 0.06)',
-            }}
-          >
-            {/* Progress Bar */}
-            <LinearProgress
-              variant="determinate"
-              value={currentStep === 0 ? 30 : currentStep === 1 ? 70 : 95}
-              sx={{
-                height: 4,
-                borderRadius: 2,
-                bgcolor: 'rgba(255, 255, 255, 0.06)',
-                '& .MuiLinearProgress-bar': {
-                  background: 'linear-gradient(90deg, #8b5cf6 0%, #06b6d4 100%)',
-                  borderRadius: 2,
-                },
-              }}
-            />
-
-            {/* Stepper Phase Labels */}
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                mt: 1.5,
-                px: 0.5,
-              }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
-                <ActiveStepIcon
-                  sx={{
-                    fontSize: 18,
-                    color: currentStep === 2 ? '#22d3ee' : '#a78bfa',
-                    animation: 'pulseGlow 2s infinite',
-                  }}
-                />
-                <Box>
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      fontWeight: 700,
-                      color: '#f8fafc',
-                      fontFamily: 'monospace',
-                      letterSpacing: '0.01em',
-                      display: 'block',
-                    }}
-                  >
-                    Step {currentStep + 1}/3: {PROVING_STEPS[currentStep].label}
-                  </Typography>
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      color: '#94a3b8',
-                      fontSize: '0.7rem',
-                    }}
-                  >
-                    {PROVING_STEPS[currentStep].detail}
-                  </Typography>
-                </Box>
-              </Box>
-
-              <Typography
-                variant="caption"
-                sx={{
-                  fontFamily: 'monospace',
-                  color: '#06b6d4',
-                  fontWeight: 600,
-                  bgcolor: 'rgba(6, 182, 212, 0.1)',
-                  px: 1,
-                  py: 0.3,
-                  borderRadius: 1,
-                }}
-              >
-                ~{currentStep === 0 ? '18s' : currentStep === 1 ? '10s' : '3s'}
-              </Typography>
-            </Box>
-          </Box>
-        </Fade>
-      )}
-
-      {/* Footer bar */}
-      <Box
+      {/* Left Column: Avatar */}
+      <Avatar
         sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          mt: isPosting ? 1.5 : 2,
-          pt: 1.5,
-          borderTop: isPosting ? 'none' : '1px solid rgba(255, 255, 255, 0.06)',
+          width: 40,
+          height: 40,
+          bgcolor: '#2f3336',
+          color: '#e7e9ea',
+          fontWeight: 700,
+          fontSize: '0.9rem',
+          flexShrink: 0,
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, color: 'text.secondary' }}>
-          <LockIcon sx={{ fontSize: 15, color: '#06b6d4' }} />
-          <Typography
-            variant="caption"
-            sx={{
-              fontFamily: 'monospace',
-              fontSize: '0.72rem',
-              color: '#94a3b8',
-              letterSpacing: '0.01em',
-            }}
-          >
-            Zero-Knowledge Shield Active
-          </Typography>
-        </Box>
+        🛡️
+      </Avatar>
 
-        <Button
-          type="submit"
-          variant="contained"
-          color="primary"
-          disabled={!message.trim() || isPosting}
-          endIcon={!isPosting ? <SendIcon sx={{ fontSize: 16 }} /> : null}
+      {/* Right Column: Text Input + Tools */}
+      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <TextField
+          fullWidth
+          multiline
+          minRows={2}
+          placeholder="Whisper something anonymously..."
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          disabled={isPosting}
+          variant="standard"
+          slotProps={{
+            input: {
+              disableUnderline: true,
+              sx: {
+                color: '#e7e9ea',
+                fontSize: '1.25rem',
+                lineHeight: 1.4,
+                p: 0,
+                '&::placeholder': {
+                  color: '#71767b',
+                  opacity: 1,
+                },
+              },
+            },
+          }}
+        />
+
+        {/* ZK Proving Stepper Banner */}
+        {isPosting && (
+          <Fade in={isPosting}>
+            <Box
+              sx={{
+                my: 1.5,
+                p: 1.5,
+                borderRadius: 3,
+                bgcolor: '#16181c',
+                border: '1px solid #2f3336',
+              }}
+            >
+              <LinearProgress
+                variant="determinate"
+                value={currentStep === 0 ? 30 : currentStep === 1 ? 70 : 95}
+                sx={{
+                  height: 3,
+                  borderRadius: 2,
+                  bgcolor: '#2f3336',
+                  '& .MuiLinearProgress-bar': {
+                    bgcolor: '#1d9bf0',
+                  },
+                }}
+              />
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  mt: 1.2,
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <ActiveStepIcon sx={{ fontSize: 16, color: '#1d9bf0' }} />
+                  <Typography sx={{ fontSize: '0.8rem', fontWeight: 700, color: '#e7e9ea', fontFamily: 'monospace' }}>
+                    {PROVING_STEPS[currentStep].label}
+                  </Typography>
+                </Box>
+                <Typography sx={{ fontSize: '0.75rem', color: '#71767b', fontFamily: 'monospace' }}>
+                  {PROVING_STEPS[currentStep].detail}
+                </Typography>
+              </Box>
+            </Box>
+          </Fade>
+        )}
+
+        {/* Bottom Toolbar & Action */}
+        <Box
           sx={{
-            px: 3,
-            py: 0.8,
-            fontWeight: 700,
-            fontSize: '0.875rem',
-            letterSpacing: '-0.01em',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            mt: 1.5,
+            pt: 1.2,
+            borderTop: '1px solid #2f3336',
           }}
         >
-          {isPosting ? 'Proving ZK Circuit...' : 'Whisper'}
-        </Button>
+          {/* Privacy Icons */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <Tooltip title="Zero-Knowledge Shield Active">
+              <IconButton size="small" sx={{ color: '#1d9bf0' }}>
+                <LockIcon sx={{ fontSize: 18 }} />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Selective Disclosure (Private Witness)">
+              <IconButton size="small" sx={{ color: '#1d9bf0' }}>
+                <ShieldIcon sx={{ fontSize: 18 }} />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Midnight Preprod Layer 1">
+              <IconButton size="small" sx={{ color: '#1d9bf0' }}>
+                <LanguageIcon sx={{ fontSize: 18 }} />
+              </IconButton>
+            </Tooltip>
+          </Box>
+
+          {/* Post Button */}
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            disabled={!message.trim() || isPosting}
+            sx={{
+              px: 2.5,
+              py: 0.7,
+              fontSize: '0.9375rem',
+              fontWeight: 700,
+              borderRadius: 9999,
+            }}
+          >
+            {isPosting ? 'Proving...' : 'Whisper'}
+          </Button>
+        </Box>
       </Box>
     </Box>
   );

@@ -1,38 +1,25 @@
-// WhisperBoard — Anonymous Group Feedback on Midnight
-// Refined Header with Glassmorphic surface, Pulsing Proof Server Status, and Quick Actions
+// WhisperBoard — Top Feed Header (X / Twitter Style)
 
-import React, { useEffect, useState } from 'react';
-import { AppBar, Box, Typography, Chip, Button, Snackbar, Alert, Tooltip } from '@mui/material';
-import ShieldIcon from '@mui/icons-material/Shield';
-import ShareIcon from '@mui/icons-material/ShareOutlined';
+import React, { useState } from 'react';
+import { Box, Typography, IconButton, Tooltip, Snackbar, Alert, Button } from '@mui/material';
+import ShareOutlinedIcon from '@mui/icons-material/ShareOutlined';
 import AddLinkIcon from '@mui/icons-material/AddLink';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
 export interface HeaderProps {
   onJoinClick?: () => void;
   knownContractsCount?: number;
+  activeTab?: string;
+  onTabChange?: (tab: string) => void;
 }
 
-/**
- * WhisperBoard application header with glassmorphism surface, pulsing Prover status badge, and feed actions.
- */
-export const Header: React.FC<HeaderProps> = ({ onJoinClick, knownContractsCount = 0 }) => {
+export const Header: React.FC<HeaderProps> = ({
+  onJoinClick,
+  knownContractsCount = 0,
+  activeTab = 'for_you',
+  onTabChange,
+}) => {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [isProverOnline, setIsProverOnline] = useState(true);
-
-  // Optional background probe for prover server
-  useEffect(() => {
-    const checkProver = async () => {
-      try {
-        const res = await fetch('http://127.0.0.1:6300/health', { method: 'GET', mode: 'no-cors' });
-        setIsProverOnline(true);
-      } catch {
-        // Even if CORS blocks raw read, proof server on 6300 is active
-        setIsProverOnline(true);
-      }
-    };
-    checkProver();
-  }, []);
 
   const handleShareFeed = async () => {
     try {
@@ -50,169 +37,143 @@ export const Header: React.FC<HeaderProps> = ({ onJoinClick, knownContractsCount
   };
 
   return (
-    <AppBar
-      position="sticky"
-      data-testid="header"
+    <Box
       sx={{
-        backgroundColor: 'rgba(13, 14, 21, 0.85)',
-        backdropFilter: 'blur(16px)',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
-        px: { xs: 2, md: 4 },
-        py: 1.5,
-        zIndex: 1100,
+        position: 'sticky',
+        top: 0,
+        zIndex: 1000,
+        bgcolor: 'rgba(0, 0, 0, 0.75)',
+        backdropFilter: 'blur(12px)',
+        borderBottom: '1px solid #2f3336',
       }}
     >
+      {/* Top row with Title and actions */}
       <Box
         sx={{
           display: 'flex',
           alignItems: 'center',
-          gap: 2.5,
+          justifyContent: 'space-between',
+          px: 2,
+          py: 1.2,
         }}
-        data-testid="header-logo"
       >
-        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-          <Typography
-            variant="h6"
-            sx={{
-              background: 'linear-gradient(135deg, #a78bfa 0%, #22d3ee 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              fontWeight: 800,
-              letterSpacing: '-0.04em',
-              fontSize: '1.45rem',
-              lineHeight: 1.2,
-            }}
-          >
-            WhisperBoard
-          </Typography>
-          <Typography
-            variant="caption"
-            sx={{
-              color: 'text.secondary',
-              fontStyle: 'normal',
-              fontSize: '0.72rem',
-              letterSpacing: '0.01em',
-              display: { xs: 'none', sm: 'block' },
-            }}
-          >
-            Zero-Knowledge Anonymous Feedback
-          </Typography>
-        </Box>
+        <Typography
+          sx={{
+            fontWeight: 800,
+            fontSize: '1.25rem',
+            color: '#e7e9ea',
+            letterSpacing: '-0.02em',
+          }}
+        >
+          Home
+        </Typography>
 
-        {/* Pulsing Prover Status Badge */}
-        <Tooltip title="Local ZK-SNARK Prover is active on port 6300 (Private witness generation enabled)">
-          <Box
-            sx={{
-              display: { xs: 'none', md: 'flex' },
-              alignItems: 'center',
-              gap: 1,
-              px: 1.5,
-              py: 0.5,
-              borderRadius: 20,
-              bgcolor: 'rgba(16, 185, 129, 0.08)',
-              border: '1px solid rgba(16, 185, 129, 0.25)',
-              cursor: 'default',
-            }}
-          >
-            <Box
-              sx={{
-                width: 8,
-                height: 8,
-                borderRadius: '50%',
-                bgcolor: isProverOnline ? '#10b981' : '#f59e0b',
-                animation: isProverOnline ? 'pulseGlow 2s infinite' : 'none',
-              }}
-            />
-            <Typography
-              variant="caption"
-              sx={{
-                color: '#34d399',
-                fontFamily: 'monospace',
-                fontWeight: 600,
-                fontSize: '0.7rem',
-                letterSpacing: '0.02em',
-              }}
-            >
-              Midnight DevNet / Prover :6300 Connected
-            </Typography>
-          </Box>
-        </Tooltip>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          {onJoinClick && (
+            <Tooltip title="Import or join a contract address">
+              <IconButton
+                onClick={onJoinClick}
+                size="small"
+                sx={{
+                  color: '#e7e9ea',
+                  '&:hover': { bgcolor: 'rgba(231, 233, 234, 0.1)' },
+                }}
+              >
+                <AddLinkIcon sx={{ fontSize: 20 }} />
+              </IconButton>
+            </Tooltip>
+          )}
+
+          {knownContractsCount > 0 && (
+            <Tooltip title="Share current feed link">
+              <IconButton
+                onClick={handleShareFeed}
+                size="small"
+                sx={{
+                  color: '#1d9bf0',
+                  '&:hover': { bgcolor: 'rgba(29, 155, 240, 0.1)' },
+                }}
+              >
+                <ShareOutlinedIcon sx={{ fontSize: 20 }} />
+              </IconButton>
+            </Tooltip>
+          )}
+        </Box>
       </Box>
 
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-        {onJoinClick && (
-          <Tooltip title="Import or join an existing contract address">
-            <Button
-              size="small"
-              variant="outlined"
-              color="inherit"
-              startIcon={<AddLinkIcon sx={{ fontSize: 16 }} />}
-              onClick={onJoinClick}
-              sx={{
-                borderColor: 'rgba(255, 255, 255, 0.12)',
-                bgcolor: 'rgba(255, 255, 255, 0.03)',
-                color: 'text.secondary',
-                fontSize: '0.8rem',
-                py: 0.6,
-                px: 1.5,
-                '&:hover': {
-                  borderColor: 'primary.main',
-                  bgcolor: 'rgba(139, 92, 246, 0.08)',
-                  color: 'text.primary',
-                },
-                display: { xs: 'none', sm: 'inline-flex' },
-              }}
-            >
-              Join Contract
-            </Button>
-          </Tooltip>
-        )}
-
-        {knownContractsCount > 0 && (
-          <Tooltip title="Copy link to this feed (with all post addresses)">
-            <Button
-              size="small"
-              variant="outlined"
-              color="primary"
-              startIcon={<ShareIcon sx={{ fontSize: 16 }} />}
-              onClick={handleShareFeed}
-              sx={{
-                fontSize: '0.8rem',
-                py: 0.6,
-                px: 1.5,
-                borderColor: 'rgba(139, 92, 246, 0.4)',
-                bgcolor: 'rgba(139, 92, 246, 0.08)',
-                '&:hover': {
-                  bgcolor: 'rgba(139, 92, 246, 0.16)',
-                  borderColor: 'primary.light',
-                },
-              }}
-            >
-              Share Feed
-            </Button>
-          </Tooltip>
-        )}
-
-        <Chip
-          icon={<ShieldIcon sx={{ fontSize: 15 }} />}
-          label="Midnight Preprod"
-          size="small"
-          variant="outlined"
+      {/* Twitter Tabs: "For you" / "Shielded Feed" */}
+      <Box sx={{ display: 'flex', borderTop: '1px solid #2f3336' }}>
+        <Box
+          onClick={() => onTabChange?.('for_you')}
           sx={{
-            borderColor: 'rgba(6, 182, 212, 0.3)',
-            bgcolor: 'rgba(6, 182, 212, 0.06)',
-            color: '#22d3ee',
-            fontFamily: 'monospace',
-            fontWeight: 600,
-            fontSize: '0.7rem',
-            '& .MuiChip-icon': { color: '#06b6d4' },
-            display: { xs: 'none', lg: 'inline-flex' },
+            flex: 1,
+            py: 1.6,
+            textAlign: 'center',
+            cursor: 'pointer',
+            position: 'relative',
+            '&:hover': { bgcolor: 'rgba(231, 233, 234, 0.05)' },
           }}
-        />
+        >
+          <Typography
+            sx={{
+              fontWeight: activeTab === 'for_you' ? 700 : 500,
+              color: activeTab === 'for_you' ? '#e7e9ea' : '#71767b',
+              fontSize: '0.9375rem',
+            }}
+          >
+            For you
+          </Typography>
+          {activeTab === 'for_you' && (
+            <Box
+              sx={{
+                position: 'absolute',
+                bottom: 0,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                width: 56,
+                height: 4,
+                bgcolor: '#1d9bf0',
+                borderRadius: 9999,
+              }}
+            />
+          )}
+        </Box>
+
+        <Box
+          onClick={() => onTabChange?.('shielded')}
+          sx={{
+            flex: 1,
+            py: 1.6,
+            textAlign: 'center',
+            cursor: 'pointer',
+            position: 'relative',
+            '&:hover': { bgcolor: 'rgba(231, 233, 234, 0.05)' },
+          }}
+        >
+          <Typography
+            sx={{
+              fontWeight: activeTab === 'shielded' ? 700 : 500,
+              color: activeTab === 'shielded' ? '#e7e9ea' : '#71767b',
+              fontSize: '0.9375rem',
+            }}
+          >
+            Shielded Feed
+          </Typography>
+          {activeTab === 'shielded' && (
+            <Box
+              sx={{
+                position: 'absolute',
+                bottom: 0,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                width: 72,
+                height: 4,
+                bgcolor: '#1d9bf0',
+                borderRadius: 9999,
+              }}
+            />
+          )}
+        </Box>
       </Box>
 
       <Snackbar
@@ -226,16 +187,14 @@ export const Header: React.FC<HeaderProps> = ({ onJoinClick, knownContractsCount
           severity="success"
           icon={<CheckCircleIcon fontSize="inherit" />}
           sx={{
-            width: '100%',
-            bgcolor: '#151722',
-            color: '#f8fafc',
-            border: '1px solid rgba(16, 185, 129, 0.3)',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
+            bgcolor: '#16181c',
+            color: '#e7e9ea',
+            border: '1px solid #2f3336',
           }}
         >
-          Feed link copied to clipboard! Share it with anyone.
+          Feed link copied to clipboard!
         </Alert>
       </Snackbar>
-    </AppBar>
+    </Box>
   );
 };

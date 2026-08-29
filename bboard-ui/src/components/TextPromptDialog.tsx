@@ -1,25 +1,32 @@
-// WhisperBoard — TextPromptDialog for Joining existing contracts
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Typography } from '@mui/material';
-import React, { useState } from 'react';
+// WhisperBoard — TextPromptDialog (X / Twitter Style Modal)
 
-/**
- * The props required by the {@link TextPromptDialog} component.
- */
+import React, { useState } from 'react';
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  TextField,
+  Typography,
+  IconButton,
+  Box,
+} from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
+
 export interface TextPromptDialogProps {
-  /** The prompt to display to the user. */
   prompt: string;
-  /** `true` to render the dialog opened; otherwise closed. */
   isOpen: boolean;
-  /** A callback that will be called if the user cancels the dialog. */
   onCancel: () => void;
-  /** A callback that will be called when the user submits their inputted data. */
   onSubmit: (text: string) => void;
 }
 
-/**
- * A modal dialog that prompts the user to enter a contract address to join.
- */
-export const TextPromptDialog: React.FC<Readonly<TextPromptDialogProps>> = ({ prompt, isOpen, onCancel, onSubmit }) => {
+export const TextPromptDialog: React.FC<Readonly<TextPromptDialogProps>> = ({
+  prompt,
+  isOpen,
+  onCancel,
+  onSubmit,
+}) => {
   const [text, setText] = useState<string>('');
 
   return (
@@ -27,46 +34,61 @@ export const TextPromptDialog: React.FC<Readonly<TextPromptDialogProps>> = ({ pr
       open={isOpen}
       onClose={onCancel}
       fullWidth
-      maxWidth="sm"
+      maxWidth="xs"
       slotProps={{
         paper: {
           sx: {
-            bgcolor: 'background.paper',
-            border: '1px solid',
-            borderColor: 'divider',
-            borderRadius: 3,
-            p: 1,
+            bgcolor: '#000000',
+            border: '1px solid #2f3336',
+            borderRadius: 4,
+            p: 1.5,
           },
         },
       }}
     >
-      <DialogTitle>
-        <Typography variant="h6" color="text.primary" sx={{ fontWeight: 700 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 1, pt: 0.5 }}>
+        <IconButton size="small" onClick={onCancel} sx={{ color: '#e7e9ea' }}>
+          <CloseIcon sx={{ fontSize: 20 }} />
+        </IconButton>
+        <Typography sx={{ fontWeight: 800, fontSize: '1.1rem', color: '#e7e9ea' }}>
           {prompt}
         </Typography>
-      </DialogTitle>
-      <DialogContent>
+        <Box sx={{ width: 28 }} />
+      </Box>
+
+      <DialogContent sx={{ px: 1.5, py: 2 }}>
+        <Typography sx={{ fontSize: '0.85rem', color: '#71767b', mb: 1.5 }}>
+          Paste the 68-character Midnight contract address to load its shielded post into your feed.
+        </Typography>
         <TextField
           id="text-prompt"
-          variant="outlined"
           fullWidth
-          placeholder="e.g. 0200dbf964f541e1950883f5b2f539b66fd6111e46ce8e6e9551fbdd180114d5dd5b"
+          placeholder="0200dbf964f541e1950883f5b2f539b66..."
           size="small"
-          color="primary"
           autoComplete="off"
           value={text}
-          onChange={(e) => {
-            setText(e.target.value.trim());
+          onChange={(e) => setText(e.target.value.trim())}
+          slotProps={{
+            input: {
+              sx: {
+                bgcolor: '#16181c',
+                color: '#e7e9ea',
+                borderRadius: 2,
+                fontSize: '0.85rem',
+                fontFamily: 'monospace',
+                border: '1px solid #2f3336',
+                '&:focus-within': {
+                  borderColor: '#1d9bf0',
+                },
+              },
+            },
           }}
-          sx={{ mt: 1 }}
         />
       </DialogContent>
 
-      <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button variant="outlined" color="inherit" onClick={onCancel} sx={{ textTransform: 'none' }}>
-          Cancel
-        </Button>
+      <DialogActions sx={{ px: 1.5, pb: 1 }}>
         <Button
+          fullWidth
           variant="contained"
           color="primary"
           disabled={!text.length}
@@ -74,9 +96,14 @@ export const TextPromptDialog: React.FC<Readonly<TextPromptDialogProps>> = ({ pr
             onSubmit(text);
             setText('');
           }}
-          sx={{ textTransform: 'none', px: 3 }}
+          sx={{
+            py: 1.2,
+            fontWeight: 800,
+            fontSize: '0.95rem',
+            borderRadius: 9999,
+          }}
         >
-          Join
+          Join Post
         </Button>
       </DialogActions>
     </Dialog>

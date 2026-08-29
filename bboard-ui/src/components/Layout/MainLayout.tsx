@@ -1,53 +1,69 @@
-// WhisperBoard — Anonymous Group Feedback on Midnight
-// Feed-style layout with ambient radial background glow and layered depth
+// WhisperBoard — Main Layout (Authentic X / Twitter 3-Column Layout)
 
-import React from 'react';
-import { Box, Container } from '@mui/material';
-import { Header, HeaderProps } from './Header';
+import React, { useState } from 'react';
+import { Box } from '@mui/material';
+import { XSidebar } from './XSidebar';
+import { XRightRail } from './XRightRail';
+import { Header } from './Header';
 
-export interface MainLayoutProps extends React.PropsWithChildren, HeaderProps {}
+export interface MainLayoutProps extends React.PropsWithChildren {
+  onJoinClick?: () => void;
+  knownContractsCount?: number;
+  onComposeClick?: () => void;
+}
 
-/**
- * Provides a centered, feed-style layout for WhisperBoard with ambient radial depth glow.
- */
-export const MainLayout: React.FC<MainLayoutProps> = ({ children, onJoinClick, knownContractsCount }) => {
+export const MainLayout: React.FC<MainLayoutProps> = ({
+  children,
+  onJoinClick,
+  knownContractsCount,
+  onComposeClick,
+}) => {
+  const [activeTab, setActiveTab] = useState('for_you');
+
   return (
     <Box
       sx={{
         minHeight: '100vh',
-        bgcolor: 'background.default',
-        position: 'relative',
-        overflow: 'hidden',
+        bgcolor: '#000000',
+        color: '#e7e9ea',
+        display: 'flex',
+        justifyContent: 'center',
       }}
     >
-      {/* Ambient Radial Glow behind the Active Compose Area */}
       <Box
         sx={{
-          position: 'absolute',
-          top: 0,
-          left: '50%',
-          transform: 'translateX(-50%)',
+          display: 'flex',
           width: '100%',
-          maxWidth: '900px',
-          height: '520px',
-          background:
-            'radial-gradient(ellipse 70% 320px at 50% 120px, rgba(139, 92, 246, 0.14), rgba(6, 182, 212, 0.05) 55%, transparent 80%)',
-          pointerEvents: 'none',
-          zIndex: 0,
-        }}
-      />
-      <Header onJoinClick={onJoinClick} knownContractsCount={knownContractsCount} />
-      <Container
-        maxWidth="sm"
-        sx={{
-          py: 4,
-          px: { xs: 2, sm: 3 },
-          position: 'relative',
-          zIndex: 1,
+          maxWidth: '1280px',
+          minHeight: '100vh',
         }}
       >
-        {children}
-      </Container>
+        {/* Left Navigation Sidebar */}
+        <XSidebar onJoinClick={onJoinClick} onComposeClick={onComposeClick} />
+
+        {/* Center Main Feed Column (600px max) */}
+        <Box
+          component="main"
+          sx={{
+            flex: 1,
+            maxWidth: '600px',
+            minHeight: '100vh',
+            borderRight: '1px solid #2f3336',
+            bgcolor: '#000000',
+          }}
+        >
+          <Header
+            onJoinClick={onJoinClick}
+            knownContractsCount={knownContractsCount}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+          />
+          {children}
+        </Box>
+
+        {/* Right Rail Widgets */}
+        <XRightRail />
+      </Box>
     </Box>
   );
 };
