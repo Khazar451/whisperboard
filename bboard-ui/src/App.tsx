@@ -138,7 +138,7 @@ const App: React.FC = () => {
         onJoinClick={() => setJoinDialogOpen(true)}
         knownContractsCount={knownAddresses.length}
       >
-        {/* Compose bar */}
+        {/* Compose bar with Depth and Stepper */}
         <ComposeBar onPost={handlePost} isPosting={isPosting} />
 
         {/* Feed of whispers (newest first) */}
@@ -148,30 +148,42 @@ const App: React.FC = () => {
           </div>
         ))}
 
-        {/* Empty state */}
+        {/* Empty state with Glassmorphism container */}
         {boardDeployments.length === 0 && (
           <Box
             sx={{
               textAlign: 'center',
-              py: 8,
+              py: 7,
               px: 4,
+              borderRadius: 4,
+              bgcolor: 'rgba(21, 23, 34, 0.45)',
+              backdropFilter: 'blur(12px)',
+              border: '1px dashed rgba(255, 255, 255, 0.08)',
+              boxShadow: '0 8px 24px -4px rgba(0, 0, 0, 0.4)',
             }}
           >
             <Typography
               variant="h4"
               sx={{
-                mb: 2,
-                background: 'linear-gradient(135deg, #8b5cf6 0%, #06b6d4 100%)',
+                mb: 1.5,
+                background: 'linear-gradient(135deg, #a78bfa 0%, #22d3ee 100%)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
+                fontSize: '2.5rem',
               }}
             >
               🤫
             </Typography>
-            <Typography variant="h6" sx={{ color: 'text.secondary', mb: 1, fontWeight: 500 }}>
-              No whispers yet
+            <Typography
+              variant="h6"
+              sx={{ color: 'text.primary', mb: 1, fontWeight: 700, letterSpacing: '-0.025em' }}
+            >
+              No whispers in feed yet
             </Typography>
-            <Typography variant="body2" sx={{ color: 'text.secondary', maxWidth: 360, mx: 'auto' }}>
+            <Typography
+              variant="body2"
+              sx={{ color: 'text.secondary', maxWidth: 400, mx: 'auto', lineHeight: 1.6 }}
+            >
               Be the first to share something anonymously. Your identity is protected by zero-knowledge
               proofs — no one, not even the blockchain, knows who you are.
             </Typography>
