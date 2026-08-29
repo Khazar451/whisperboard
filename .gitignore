@@ -39,6 +39,16 @@ jspm_packages/
 
 # dotenv environment variables file
 .env
+.env.local
+.env.*.local
+*.local
+
+# Wallet seeds & credentials
+*seed*.txt
+*wallet*.json
+*.pem
+*.secret
+*.private
 
 # MacOS
 .DS_Store
