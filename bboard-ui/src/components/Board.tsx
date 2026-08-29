@@ -1,4 +1,4 @@
-// WhisperBoard — Post Row (Authentic X / Twitter Style with Real Threaded Comments)
+// WhisperBoard — Post Row (Authentic X / Twitter Style with Reliable Message Rendering & Threaded Comments)
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { type ContractAddress } from '@midnight-ntwrk/midnight-js-protocol/compact-runtime';
@@ -21,7 +21,7 @@ import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import LockIcon from '@mui/icons-material/Lock';
 import CheckIcon from '@mui/icons-material/Check';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import SendIcon from '@mui/icons-material/Send';
+import ReplyIcon from '@mui/icons-material/Reply';
 import { type BBoardDerivedState, type DeployedBBoardAPI } from '../../../api/src/index';
 import { type BoardDeployment } from '../contexts';
 import { type Observable } from 'rxjs';
@@ -80,27 +80,33 @@ export const Board: React.FC<Readonly<BoardProps>> = ({ boardDeployment$ }) => {
   const [replyText, setReplyText] = useState('');
   const contractAddress = deployedBoardAPI?.deployedContractAddress ?? '';
 
-  const commentsStorageKey = `whisperboard_comments_${contractAddress}`;
+  // Local caching for instant message display
+  const [cachedMessage, setCachedMessage] = useState<string>(() => {
+    if (!contractAddress) return '';
+    return localStorage.getItem(`whisperboard_msg_${contractAddress}`) || '';
+  });
+
   const [comments, setComments] = useState<CommentItem[]>(() => {
     if (!contractAddress) return [];
     try {
-      const saved = localStorage.getItem(commentsStorageKey);
+      const saved = localStorage.getItem(`whisperboard_comments_${contractAddress}`);
       return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
     }
   });
 
-  // Reload comments when contract address is ready
+  // Reload cache & comments when contract address is ready
   useEffect(() => {
     if (!contractAddress) return;
     try {
-      const saved = localStorage.getItem(`whisperboard_comments_${contractAddress}`);
-      if (saved) {
-        setComments(JSON.parse(saved));
-      }
+      const savedMsg = localStorage.getItem(`whisperboard_msg_${contractAddress}`);
+      if (savedMsg) setCachedMessage(savedMsg);
+
+      const savedComments = localStorage.getItem(`whisperboard_comments_${contractAddress}`);
+      if (savedComments) setComments(JSON.parse(savedComments));
     } catch (e) {
-      console.error('Error loading comments:', e);
+      console.error('Error loading cached post data:', e);
     }
   }, [contractAddress]);
 
@@ -126,7 +132,13 @@ export const Board: React.FC<Readonly<BoardProps>> = ({ boardDeployment$ }) => {
     }
 
     setDeployedBoardAPI(boardDeployment.api);
-    const subscription = boardDeployment.api.state$.subscribe(setBoardState);
+    const subscription = boardDeployment.api.state$.subscribe((state) => {
+      setBoardState(state);
+      if (state.message && boardDeployment.api.deployedContractAddress) {
+        localStorage.setItem(`whisperboard_msg_${boardDeployment.api.deployedContractAddress}`, state.message);
+        setCachedMessage(state.message);
+      }
+    });
     return () => {
       subscription.unsubscribe();
     };
@@ -199,7 +211,7 @@ export const Board: React.FC<Readonly<BoardProps>> = ({ boardDeployment$ }) => {
   }
 
   // Loading Skeleton row
-  if (isWorking && !boardState) {
+  if (isWorking && !boardState && !cachedMessage) {
     return (
       <Box
         sx={{
@@ -262,6 +274,7 @@ export const Board: React.FC<Readonly<BoardProps>> = ({ boardDeployment$ }) => {
   }
 
   const isOwner = !!boardState?.isOwner;
+  const displayMessage = boardState?.message || cachedMessage;
 
   return (
     <Box
@@ -376,22 +389,28 @@ export const Board: React.FC<Readonly<BoardProps>> = ({ boardDeployment$ }) => {
             </Box>
           </Box>
 
-          {/* Message Text */}
-          <Typography
-            data-testid="board-posted-message"
-            sx={{
-              color: '#e7e9ea',
-              fontSize: '0.9375rem',
-              lineHeight: 1.5,
-              whiteSpace: 'pre-wrap',
-              wordBreak: 'break-word',
-              my: 0.5,
-            }}
-          >
-            {boardState?.message}
-          </Typography>
+          {/* Original Message Text */}
+          {displayMessage ? (
+            <Typography
+              data-testid="board-posted-message"
+              sx={{
+                color: '#e7e9ea',
+                fontSize: '0.9375rem',
+                lineHeight: 1.5,
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'break-word',
+                my: 0.8,
+              }}
+            >
+              {displayMessage}
+            </Typography>
+          ) : (
+            <Box sx={{ my: 1 }}>
+              <Skeleton variant="text" width="90%" height={22} sx={{ bgcolor: '#16181c' }} />
+            </Box>
+          )}
 
-          {/* Twitter Action Bar: Reply, Like, Share, Delete (Repost removed) */}
+          {/* Twitter Action Bar: Reply, Like, Share, Delete */}
           <Box
             sx={{
               display: 'flex',
@@ -487,7 +506,7 @@ export const Board: React.FC<Readonly<BoardProps>> = ({ boardDeployment$ }) => {
         </Box>
       </Box>
 
-      {/* Inline Reply / Comment Box */}
+      {/* Inline Reply Box */}
       {showReplyBox && (
         <Box
           component="form"
@@ -507,11 +526,11 @@ export const Board: React.FC<Readonly<BoardProps>> = ({ boardDeployment$ }) => {
               width: 32,
               height: 32,
               bgcolor: '#2f3336',
-              fontSize: '0.75rem',
+              color: '#71767b',
               flexShrink: 0,
             }}
           >
-            💬
+            <ReplyIcon sx={{ fontSize: 18 }} />
           </Avatar>
           <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
             <TextField
@@ -566,7 +585,7 @@ export const Board: React.FC<Readonly<BoardProps>> = ({ boardDeployment$ }) => {
                 gap: 1.5,
                 px: 2.5,
                 py: 1.2,
-                pl: 6.5, // Indented thread layout
+                pl: 6.5,
                 borderTop: '1px solid rgba(47, 51, 54, 0.3)',
                 '&:hover': { bgcolor: 'rgba(231, 233, 234, 0.02)' },
               }}
@@ -581,7 +600,7 @@ export const Board: React.FC<Readonly<BoardProps>> = ({ boardDeployment$ }) => {
                   flexShrink: 0,
                 }}
               >
-                A
+                R
               </Avatar>
               <Box sx={{ flex: 1, minWidth: 0 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 0.2 }}>

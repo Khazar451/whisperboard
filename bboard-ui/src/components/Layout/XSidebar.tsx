@@ -287,12 +287,10 @@ export const XSidebar: React.FC<XSidebarProps> = ({ onJoinClick, onComposeClick 
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: '#e7e9ea',
-                fontWeight: 700,
-                fontSize: '0.85rem',
+                color: '#1d9bf0',
               }}
             >
-              🛡️
+              <LockOutlinedIcon sx={{ fontSize: 18 }} />
             </Box>
             <Box sx={{ display: { xs: 'none', xl: 'block' }, lineHeight: 1.2 }}>
               <Typography sx={{ fontWeight: 700, fontSize: '0.9rem', color: '#e7e9ea' }}>

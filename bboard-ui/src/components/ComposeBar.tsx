@@ -89,13 +89,11 @@ export const ComposeBar: React.FC<ComposeBarProps> = ({ onPost, isPosting }) => 
           width: 40,
           height: 40,
           bgcolor: '#2f3336',
-          color: '#e7e9ea',
-          fontWeight: 700,
-          fontSize: '0.9rem',
+          color: '#1d9bf0',
           flexShrink: 0,
         }}
       >
-        🛡️
+        <LockIcon sx={{ fontSize: 20 }} />
       </Avatar>
 
       {/* Right Column: Text Input + Tools */}

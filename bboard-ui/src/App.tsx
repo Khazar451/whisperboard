@@ -103,6 +103,9 @@ const App: React.FC = () => {
         const subscription = deployment$.subscribe(async (deployment: BoardDeployment) => {
           if (deployment.status === 'deployed') {
             try {
+              if (deployment.api.deployedContractAddress) {
+                localStorage.setItem(`whisperboard_msg_${deployment.api.deployedContractAddress}`, message);
+              }
               await deployment.api.post(message);
             } catch (error) {
               console.error('Failed to post message:', error);
@@ -156,7 +159,7 @@ const App: React.FC = () => {
           </div>
         ))}
 
-        {/* Empty state (X / Twitter style) */}
+        {/* Empty state (X / Twitter style - no emojis) */}
         {boardDeployments.length === 0 && (
           <Box
             sx={{
@@ -166,13 +169,28 @@ const App: React.FC = () => {
               borderBottom: '1px solid #2f3336',
             }}
           >
-            <Typography sx={{ fontSize: '2.5rem', mb: 1.5 }}>
-              🤫
-            </Typography>
+            <Box
+              sx={{
+                width: 52,
+                height: 52,
+                borderRadius: '50%',
+                bgcolor: 'rgba(29, 155, 240, 0.1)',
+                border: '1px solid rgba(29, 155, 240, 0.3)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                mx: 'auto',
+                mb: 2,
+              }}
+            >
+              <Typography sx={{ color: '#1d9bf0', fontWeight: 900, fontSize: '1.4rem' }}>
+                W
+              </Typography>
+            </Box>
             <Typography
               sx={{ fontWeight: 800, fontSize: '1.4rem', color: '#e7e9ea', mb: 1, letterSpacing: '-0.03em' }}
             >
-              Welcome to WhisperBoard!
+              Welcome to WhisperBoard
             </Typography>
             <Typography
               sx={{ color: '#71767b', fontSize: '0.9375rem', maxWidth: 380, mx: 'auto', lineHeight: 1.5 }}

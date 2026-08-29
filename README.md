@@ -1,4 +1,4 @@
-# 🤫 WhisperBoard — Anonymous Group Feedback on Midnight
+#  WhisperBoard — Anonymous Group Feedback on Midnight
 
 > **Speak freely. Stay anonymous.** Built for the **MLH × Midnight Hackathon** (August 28–30, 2026).
 
@@ -8,50 +8,50 @@
 
 ---
 
-## 🔗 Quick Links
-- 📺 **Demo Video (≤ 2 Min):** [Watch Demo Video (YouTube / Loom) ↗](https://youtu.be/placeholder-demo-video) *(Replace with your link)*
-- 🏆 **Devpost Submission:** [View on Devpost ↗](https://devpost.com/software/placeholder-whisperboard) *(Replace with your link)*
-- 🌐 **Midnight Documentation:** [docs.midnight.network ↗](https://docs.midnight.network/)
+##  Quick Links
+-  **Demo Video (≤ 2 Min):** [Watch Demo Video (YouTube / Loom) ↗](https://youtu.be/placeholder-demo-video) *(Replace with your link)*
+-  **Devpost Submission:** [View on Devpost ↗](https://devpost.com/software/placeholder-whisperboard) *(Replace with your link)*
+-  **Midnight Documentation:** [docs.midnight.network ↗](https://docs.midnight.network/)
 
 ---
 
-## 📸 Preview
+##  Preview
 
 ![WhisperBoard X-Style Interface](docs/screenshot.png)
 
 ---
 
-## 💡 What is WhisperBoard?
+##  What is WhisperBoard?
 
 **WhisperBoard** is a decentralized, zero-knowledge anonymous feedback and discussion feed built on the **Midnight Network**. Users can post candid thoughts, whistleblowing reports, or team feedback to a shared timeline without exposing their identity or wallet address—while retaining cryptographic ownership to delete their posts via ZK proofs.
 
 ---
 
-## ✨ Key Features & Engineering Highlights
+##  Key Features & Engineering Highlights
 
-### 🚀 1. Multi-Board Feed Discovery (Core Innovation over Baseline)
+###  1. Multi-Board Feed Discovery (Core Innovation over Baseline)
 *The baseline `example-bboard` is a single-contract, single-message board.* **WhisperBoard transforms this into a scalable social network feed:**
 - **Automated Instance Orchestration**: Every whisper seamlessly compiles and deploys an independent Compact smart contract instance on Midnight.
 - **Dynamic Feed Discovery**: Aggregates distributed contracts into a unified real-time stream using `localStorage` caching and **URL parameter state synchronization (`?boards=addr1,addr2`)**.
 - **Cross-Client Feed Sharing**: Users can click **"Share Feed"** to copy a link that instantly loads all active contract instances on any remote browser.
 
-### 🔒 2. Mathematical Anonymity via ZK-SNARKs
+###  2. Mathematical Anonymity via ZK-SNARKs
 - **Zero Identity Leakage**: No wallet addresses, cookies, or personal metadata are stored on-chain.
 - **Local-First Witness Generation**: Proving keys and private witnesses are evaluated on your local device via Midnight's Docker proof server (`:6300`). Sensitive keys never touch the network.
 
-### 🛡️ 3. Selective Disclosure & ZK-Proven Ownership
+###  3. Selective Disclosure & ZK-Proven Ownership
 - **Author-Only Deletion**: Only the original creator possesses the private witness to authorize a takedown on-chain.
 - **Deterministic Pseudonyms**: Authors are tagged with unique identifiers (e.g. `Anon #ac25`) and custom gradient avatars calculated from contract commitment hashes.
 
-### 💬 4. Interactive Threaded Comments
+###  4. Interactive Threaded Comments
 - Click the **💬 Comment icon** on any whisper to open an inline response box and build threaded anonymous conversations beneath posts.
 
-### 🐦 5. Authentic X (Twitter) 3-Column UI
+###  5. Authentic X (Twitter) 3-Column UI
 - Pitch-black (`#000000`) canvas, crisp hairline dividers (`#2f3336`), live prover health indicator (`● Prover :6300 Active`), and intuitive micro-interactions.
 
 ---
 
-## 🏗️ Architecture
+##  Architecture
 
 ```
 whisperboard/
@@ -76,19 +76,19 @@ whisperboard/
 
 ---
 
-## 🔐 Privacy Model: What's Public vs. What's Private
+##  Privacy Model: What's Public vs. What's Private
 
 | Attribute | Public (On-Chain) | Private (Local Client Only) |
 |---|:---:|:---:|
-| **Message Content** | ✅ Visible | — |
-| **Contract Address** | ✅ Visible | — |
-| **Poster Wallet Address** | ❌ **Hidden** | ✅ Stored locally in browser |
-| **Author Secret Key** | ❌ **Hidden** | ✅ Stored in memory / Lace |
-| **ZK Ownership Witness** | ❌ **Hidden** | ✅ Evaluated on `:6300` |
+| **Message Content** |  Visible | — |
+| **Contract Address** |  Visible | — |
+| **Poster Wallet Address** |  **Hidden** |  Stored locally in browser |
+| **Author Secret Key** |  **Hidden** |  Stored in memory / Lace |
+| **ZK Ownership Witness** |  **Hidden** |  Evaluated on `:6300` |
 
 ---
 
-## 🚀 Quick Start Guide
+##  Quick Start Guide
 
 ### Prerequisites
 - **Node.js** v22+
@@ -120,17 +120,17 @@ Open **`http://localhost:8085`** in your browser.
 
 ---
 
-## 👛 Lace Wallet Setup
+##  Lace Wallet Setup
 
 1. Open **Lace** $\rightarrow$ switch network to **Midnight Preview** (or **Preprod**).
 2. Ensure Proof Server is set to **`http://localhost:6300`**.
 3. Fund your wallet from the [Midnight Preview Faucet](https://midnight-tmnight-preview.nethermind.dev/) (or [Preprod Faucet](https://midnight-tmnight-preprod.nethermind.dev/)).
 4. Go to **Tokens** $\rightarrow$ **Generate tDUST** to enable transaction gas fees.
-5. Connect to **`http://localhost:8085`** and start whispering! 🤫
+5. Connect to **`http://localhost:8085`** and start whispering! 
 
 ---
 
-## 🛠️ Technology Stack
+##  Technology Stack
 - **Network:** Midnight Network (Layer-1 with zero-knowledge dual-state ledger)
 - **Smart Contracts:** Compact DSL compiled via `compactc 0.31.0`
 - **SDK:** `@midnight-ntwrk/midnight-js`, `@midnight-ntwrk/dapp-connector-api`
@@ -142,4 +142,4 @@ Open **`http://localhost:8085`** in your browser.
 ## 👥 Hackathon Team & Event
 - **Event:** MLH × Midnight Hackathon (August 28–30, 2026)
 - **Theme:** Building production-ready, privacy-first applications on Midnight
-- **License:** MIT
+- **License:** Midnight Network
