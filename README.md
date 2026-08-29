@@ -1,107 +1,145 @@
-#  WhisperBoard — Anonymous Group Feedback on Midnight
+# 🤫 WhisperBoard — Anonymous Group Feedback on Midnight
 
-> **Speak freely. Stay anonymous.** Built for the MLH × Midnight Hackathon (August 28–30, 2026).
+> **Speak freely. Stay anonymous.** Built for the **MLH × Midnight Hackathon** (August 28–30, 2026).
 
-WhisperBoard is a privacy-preserving anonymous feedback application built on the [Midnight Network](https://midnight.network/). Users can post messages to a shared feed without revealing their identity — all powered by zero-knowledge proofs.
+[![Midnight Network](https://img.shields.io/badge/Midnight-Preview%20%26%20Preprod-8b5cf6?style=for-the-badge&logo=blockchain)](https://midnight.network/)
+[![Zero Knowledge](https://img.shields.io/badge/ZK--SNARKs-Client--Side%20Proving-00ba7c?style=for-the-badge)](https://docs.midnight.network/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-1d9bf0?style=for-the-badge)](LICENSE)
 
-##  Features
+---
 
-- ** True Anonymity** — Your identity is never stored on-chain. Zero-knowledge proofs ensure that posts are cryptographically anonymous.
-- ** ZK-Proven Ownership** — Only the original author can delete their own post, verified via zero-knowledge proof (not by revealing who they are).
-- ** Anonymous Feed** — A vertical feed of whispers from anonymous users, each identified only by a deterministic pseudonym (e.g., "Anon #9a4f").
-- ** Real-time State** — Posts and deletions are reflected in real-time via Midnight's indexer.
-- ** Privacy-First Design** — Dark theme with purple/cyan aesthetics that embody the privacy ethos.
+## 🔗 Quick Links
+- 📺 **Demo Video (≤ 2 Min):** [Watch Demo Video (YouTube / Loom) ↗](https://youtu.be/placeholder-demo-video) *(Replace with your link)*
+- 🏆 **Devpost Submission:** [View on Devpost ↗](https://devpost.com/software/placeholder-whisperboard) *(Replace with your link)*
+- 🌐 **Midnight Documentation:** [docs.midnight.network ↗](https://docs.midnight.network/)
 
-##  How It Works
+---
 
-WhisperBoard is built on top of Midnight's [Bulletin Board example](https://github.com/midnightntwrk/example-bboard). Each "whisper" is a separate smart contract deployment on Midnight:
+## 📸 Preview
 
-1. **User types a message** in the compose bar
-2. **A new Compact smart contract is deployed** on-chain
-3. **The message is posted** to that contract via a zero-knowledge proof
-4. **The proof is generated locally** on the user's device — sensitive data never leaves their machine
-5. **Other users see the message** in the feed, but can never determine who posted it
-6. **Only the original poster can delete** their message (proven via ZK, not by identity)
+![WhisperBoard X-Style Interface](docs/screenshot.png)
 
-### Architecture
+---
+
+## 💡 What is WhisperBoard?
+
+**WhisperBoard** is a decentralized, zero-knowledge anonymous feedback and discussion feed built on the **Midnight Network**. Users can post candid thoughts, whistleblowing reports, or team feedback to a shared timeline without exposing their identity or wallet address—while retaining cryptographic ownership to delete their posts via ZK proofs.
+
+---
+
+## ✨ Key Features & Engineering Highlights
+
+### 🚀 1. Multi-Board Feed Discovery (Core Innovation over Baseline)
+*The baseline `example-bboard` is a single-contract, single-message board.* **WhisperBoard transforms this into a scalable social network feed:**
+- **Automated Instance Orchestration**: Every whisper seamlessly compiles and deploys an independent Compact smart contract instance on Midnight.
+- **Dynamic Feed Discovery**: Aggregates distributed contracts into a unified real-time stream using `localStorage` caching and **URL parameter state synchronization (`?boards=addr1,addr2`)**.
+- **Cross-Client Feed Sharing**: Users can click **"Share Feed"** to copy a link that instantly loads all active contract instances on any remote browser.
+
+### 🔒 2. Mathematical Anonymity via ZK-SNARKs
+- **Zero Identity Leakage**: No wallet addresses, cookies, or personal metadata are stored on-chain.
+- **Local-First Witness Generation**: Proving keys and private witnesses are evaluated on your local device via Midnight's Docker proof server (`:6300`). Sensitive keys never touch the network.
+
+### 🛡️ 3. Selective Disclosure & ZK-Proven Ownership
+- **Author-Only Deletion**: Only the original creator possesses the private witness to authorize a takedown on-chain.
+- **Deterministic Pseudonyms**: Authors are tagged with unique identifiers (e.g. `Anon #ac25`) and custom gradient avatars calculated from contract commitment hashes.
+
+### 💬 4. Interactive Threaded Comments
+- Click the **💬 Comment icon** on any whisper to open an inline response box and build threaded anonymous conversations beneath posts.
+
+### 🐦 5. Authentic X (Twitter) 3-Column UI
+- Pitch-black (`#000000`) canvas, crisp hairline dividers (`#2f3336`), live prover health indicator (`● Prover :6300 Active`), and intuitive micro-interactions.
+
+---
+
+## 🏗️ Architecture
 
 ```
 whisperboard/
-├── contract/          # Compact smart contract (ZK-proven bulletin board)
+├── contract/                   # Compact Smart Contract & ZK Circuits
 │   └── src/
-│       └── bboard.compact    # The Compact language contract
-├── api/               # Shared API layer (deploy, join, post, takeDown)
-├── bboard-cli/        # Command-line interface (for testing)
-└── bboard-ui/         # React web interface (WhisperBoard UI)
-    └── src/
-        ├── components/
-        │   ├── ComposeBar.tsx      # Message input with ZK shield indicator
-        │   ├── Board.tsx           # Feed item card with anon pseudonym
-        │   └── Layout/            # Header + feed layout
-        ├── contexts/              # Board deployment state management
-        └── config/theme.ts        # Dark privacy-themed MUI theme
+│       ├── bboard.compact     # Compact DSL contract ('post' & 'takeDown' circuits)
+│       ├── witnesses.ts       # Private state witness provider
+│       └── managed/bboard/    # Generated ZKIR, proving keys, and TS bindings
+├── api/                        # Shared Midnight.js API Layer
+│   └── src/index.ts           # DeployedBBoardAPI, state$ RxJS streams
+├── bboard-cli/                 # Docker proof server runtime configuration
+│   └── proof-server-local.yml # Docker compose for midnightntwrk/proof-server:8.0.3
+├── bboard-ui/                  # React 19 + TypeScript + Vite Frontend
+│   └── src/
+│       ├── components/
+│       │   ├── ComposeBar.tsx # X-style inline compose box with ZK proving stepper
+│       │   ├── Board.tsx      # Tweet feed row with threaded comments & ZK delete
+│       │   └── Layout/        # X 3-Column layout (XSidebar, XRightRail, Header)
+│       └── contexts/          # BrowserDeployedBoardManager & RxJS observers
+└── docs/                       # Screenshots and visual media
 ```
 
-##  Getting Started
+---
+
+## 🔐 Privacy Model: What's Public vs. What's Private
+
+| Attribute | Public (On-Chain) | Private (Local Client Only) |
+|---|:---:|:---:|
+| **Message Content** | ✅ Visible | — |
+| **Contract Address** | ✅ Visible | — |
+| **Poster Wallet Address** | ❌ **Hidden** | ✅ Stored locally in browser |
+| **Author Secret Key** | ❌ **Hidden** | ✅ Stored in memory / Lace |
+| **ZK Ownership Witness** | ❌ **Hidden** | ✅ Evaluated on `:6300` |
+
+---
+
+## 🚀 Quick Start Guide
 
 ### Prerequisites
+- **Node.js** v22+
+- **Docker** with Compose v2
+- **Lace Wallet** browser extension ([Chrome Web Store](https://chromewebstore.google.com/detail/lace/gafhhkghbfjjkeiendhlofajokpaflmk))
 
-- **Node.js** v22+ ([install](https://nodejs.org/))
-- **Docker** with Docker Compose v2 ([install](https://docs.docker.com/desktop/))
-- **Lace Wallet** browser extension ([Chrome](https://chromewebstore.google.com/detail/lace/gafhhkghbfjjkeiendhlofajokpaflmk) | [Edge](https://microsoftedge.microsoft.com/addons/detail/lace/efeiemlfnahiidnjglmehaihacglceia))
-
-### Setup
-
+### 1. Clone & Install
 ```bash
-# 1. Install dependencies
+git clone https://github.com/YOUR_USERNAME/whisperboard.git
+cd whisperboard
 npm install
+```
 
-# 2. Start the local proof server (required for ZK proof generation)
+### 2. Start Local Proof Server
+```bash
 cd bboard-cli
 docker compose -f proof-server-local.yml up -d
 cd ..
-
-# 3. Build and start the UI (preprod network)
-cd bboard-ui
-npm run build:start
 ```
 
-The UI will be available at **http://127.0.0.1:8085**.
+### 3. Launch the Application
+```bash
+cd bboard-ui
+# For Midnight Preview Network:
+npm run build:preview
+npm start
+```
+Open **`http://localhost:8085`** in your browser.
 
-### Lace Wallet Setup
+---
 
-1. Install the Lace wallet extension
-2. Create a new wallet — select **Midnight** as the network
-3. Set **Network** to **Preprod**
-4. Set **Proof server** to **Local (http://localhost:6300)**
-5. Fund your wallet from the [Preprod Faucet](https://midnight-tmnight-preprod.nethermind.dev/)
-6. Go to **Tokens** → **Generate tDUST** (needed for transaction fees)
+## 👛 Lace Wallet Setup
 
-##  Privacy Guarantees
+1. Open **Lace** $\rightarrow$ switch network to **Midnight Preview** (or **Preprod**).
+2. Ensure Proof Server is set to **`http://localhost:6300`**.
+3. Fund your wallet from the [Midnight Preview Faucet](https://midnight-tmnight-preview.nethermind.dev/) (or [Preprod Faucet](https://midnight-tmnight-preprod.nethermind.dev/)).
+4. Go to **Tokens** $\rightarrow$ **Generate tDUST** to enable transaction gas fees.
+5. Connect to **`http://localhost:8085`** and start whispering! 🤫
 
-| What's Public | What's Private |
-|---|---|
-| Message text (the whisper itself) | Author identity |
-| Contract address | Secret key |
-| Board state (vacant/occupied) | Ownership proof inputs |
+---
 
-The ZK proof verifies that the poster has a valid secret key that corresponds to the on-chain public key — without ever revealing that secret key or linking it to any identity.
+## 🛠️ Technology Stack
+- **Network:** Midnight Network (Layer-1 with zero-knowledge dual-state ledger)
+- **Smart Contracts:** Compact DSL compiled via `compactc 0.31.0`
+- **SDK:** `@midnight-ntwrk/midnight-js`, `@midnight-ntwrk/dapp-connector-api`
+- **Frontend:** React 19, Material-UI, Vite, RxJS
+- **Prover:** Dockerized `midnightntwrk/proof-server:8.0.3`
 
-##  Tech Stack
+---
 
-- **Midnight Network** — Privacy-focused Layer 1 blockchain with ZK proofs
-- **Compact** — TypeScript-based smart contract language
-- **Midnight.js** — JavaScript SDK for interacting with Midnight contracts
-- **React** + **Material UI** — Frontend framework
-- **Vite** — Build tool
-- **Docker** — Local proof server runtime
-
-##  Hackathon Info
-
+## 👥 Hackathon Team & Event
 - **Event:** MLH × Midnight Hackathon (August 28–30, 2026)
-- **Theme:** Build privacy-preserving applications that give users control over their digital lives
-- **Team:** Built during the 48-hour hackathon weekend
-
-##  License
-
- Based on Midnight's [example-bboard](https://github.com/midnightntwrk/example-bboard).
+- **Theme:** Building production-ready, privacy-first applications on Midnight
+- **License:** MIT
