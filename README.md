@@ -1,18 +1,18 @@
-# 🤫 WhisperBoard — Anonymous Group Feedback on Midnight
+#  WhisperBoard — Anonymous Group Feedback on Midnight
 
 > **Speak freely. Stay anonymous.** Built for the MLH × Midnight Hackathon (August 28–30, 2026).
 
 WhisperBoard is a privacy-preserving anonymous feedback application built on the [Midnight Network](https://midnight.network/). Users can post messages to a shared feed without revealing their identity — all powered by zero-knowledge proofs.
 
-## ✨ Features
+##  Features
 
-- **🔒 True Anonymity** — Your identity is never stored on-chain. Zero-knowledge proofs ensure that posts are cryptographically anonymous.
-- **🛡️ ZK-Proven Ownership** — Only the original author can delete their own post, verified via zero-knowledge proof (not by revealing who they are).
-- **📝 Anonymous Feed** — A vertical feed of whispers from anonymous users, each identified only by a deterministic pseudonym (e.g., "Anon #9a4f").
-- **⚡ Real-time State** — Posts and deletions are reflected in real-time via Midnight's indexer.
-- **🌙 Privacy-First Design** — Dark theme with purple/cyan aesthetics that embody the privacy ethos.
+- ** True Anonymity** — Your identity is never stored on-chain. Zero-knowledge proofs ensure that posts are cryptographically anonymous.
+- ** ZK-Proven Ownership** — Only the original author can delete their own post, verified via zero-knowledge proof (not by revealing who they are).
+- ** Anonymous Feed** — A vertical feed of whispers from anonymous users, each identified only by a deterministic pseudonym (e.g., "Anon #9a4f").
+- ** Real-time State** — Posts and deletions are reflected in real-time via Midnight's indexer.
+- ** Privacy-First Design** — Dark theme with purple/cyan aesthetics that embody the privacy ethos.
 
-## 🏗️ How It Works
+##  How It Works
 
 WhisperBoard is built on top of Midnight's [Bulletin Board example](https://github.com/midnightntwrk/example-bboard). Each "whisper" is a separate smart contract deployment on Midnight:
 
@@ -42,7 +42,7 @@ whisperboard/
         └── config/theme.ts        # Dark privacy-themed MUI theme
 ```
 
-## 🚀 Getting Started
+##  Getting Started
 
 ### Prerequisites
 
@@ -77,7 +77,7 @@ The UI will be available at **http://127.0.0.1:8085**.
 5. Fund your wallet from the [Preprod Faucet](https://midnight-tmnight-preprod.nethermind.dev/)
 6. Go to **Tokens** → **Generate tDUST** (needed for transaction fees)
 
-## 🔐 Privacy Guarantees
+##  Privacy Guarantees
 
 | What's Public | What's Private |
 |---|---|
@@ -87,7 +87,7 @@ The UI will be available at **http://127.0.0.1:8085**.
 
 The ZK proof verifies that the poster has a valid secret key that corresponds to the on-chain public key — without ever revealing that secret key or linking it to any identity.
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 - **Midnight Network** — Privacy-focused Layer 1 blockchain with ZK proofs
 - **Compact** — TypeScript-based smart contract language
@@ -96,12 +96,12 @@ The ZK proof verifies that the poster has a valid secret key that corresponds to
 - **Vite** — Build tool
 - **Docker** — Local proof server runtime
 
-## 📝 Hackathon Info
+##  Hackathon Info
 
 - **Event:** MLH × Midnight Hackathon (August 28–30, 2026)
 - **Theme:** Build privacy-preserving applications that give users control over their digital lives
 - **Team:** Built during the 48-hour hackathon weekend
 
-## 📄 License
+##  License
 
-MIT — Based on Midnight's [example-bboard](https://github.com/midnightntwrk/example-bboard).
+ Based on Midnight's [example-bboard](https://github.com/midnightntwrk/example-bboard).

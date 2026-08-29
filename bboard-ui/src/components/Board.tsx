@@ -1,4 +1,4 @@
-// WhisperBoard — Post Row (Authentic X / Twitter Style)
+// WhisperBoard — Post Row (Authentic X / Twitter Style with Real Threaded Comments)
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { type ContractAddress } from '@midnight-ntwrk/midnight-js-protocol/compact-runtime';
@@ -10,9 +10,10 @@ import {
   Tooltip,
   Skeleton,
   CircularProgress,
+  TextField,
+  Button,
 } from '@mui/material';
 import ChatBubbleOutlinedIcon from '@mui/icons-material/ChatBubbleOutlined';
-import RepeatIcon from '@mui/icons-material/Repeat';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import IosShareIcon from '@mui/icons-material/IosShare';
@@ -20,6 +21,7 @@ import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import LockIcon from '@mui/icons-material/Lock';
 import CheckIcon from '@mui/icons-material/Check';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import SendIcon from '@mui/icons-material/Send';
 import { type BBoardDerivedState, type DeployedBBoardAPI } from '../../../api/src/index';
 import { type BoardDeployment } from '../contexts';
 import { type Observable } from 'rxjs';
@@ -27,6 +29,14 @@ import { State } from '../../../contract/src/index';
 
 export interface BoardProps {
   boardDeployment$?: Observable<BoardDeployment>;
+}
+
+interface CommentItem {
+  id: string;
+  text: string;
+  timestamp: string;
+  tag: string;
+  handle: string;
 }
 
 function getDeterministicAvatar(address: string) {
@@ -64,6 +74,35 @@ export const Board: React.FC<Readonly<BoardProps>> = ({ boardDeployment$ }) => {
   const [copied, setCopied] = useState(false);
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
+
+  // Threaded Comments State
+  const [showReplyBox, setShowReplyBox] = useState(false);
+  const [replyText, setReplyText] = useState('');
+  const contractAddress = deployedBoardAPI?.deployedContractAddress ?? '';
+
+  const commentsStorageKey = `whisperboard_comments_${contractAddress}`;
+  const [comments, setComments] = useState<CommentItem[]>(() => {
+    if (!contractAddress) return [];
+    try {
+      const saved = localStorage.getItem(commentsStorageKey);
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  // Reload comments when contract address is ready
+  useEffect(() => {
+    if (!contractAddress) return;
+    try {
+      const saved = localStorage.getItem(`whisperboard_comments_${contractAddress}`);
+      if (saved) {
+        setComments(JSON.parse(saved));
+      }
+    } catch (e) {
+      console.error('Error loading comments:', e);
+    }
+  }, [contractAddress]);
 
   useEffect(() => {
     if (!boardDeployment$) return;
@@ -106,7 +145,6 @@ export const Board: React.FC<Readonly<BoardProps>> = ({ boardDeployment$ }) => {
     }
   }, [deployedBoardAPI]);
 
-  const contractAddress = deployedBoardAPI?.deployedContractAddress ?? '';
   const avatar = useMemo(() => getDeterministicAvatar(contractAddress), [contractAddress]);
 
   const handleCopyAddress = async (e: React.MouseEvent) => {
@@ -125,6 +163,35 @@ export const Board: React.FC<Readonly<BoardProps>> = ({ boardDeployment$ }) => {
     e.stopPropagation();
     setLiked(!liked);
     setLikeCount(liked ? likeCount - 1 : likeCount + 1);
+  };
+
+  const handleToggleReply = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowReplyBox(!showReplyBox);
+  };
+
+  const handleSubmitReply = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!replyText.trim()) return;
+
+    const newComment: CommentItem = {
+      id: Date.now().toString(),
+      text: replyText.trim(),
+      timestamp: 'Just now',
+      tag: 'Anon Responder',
+      handle: '@anon_reply',
+    };
+
+    const updated = [...comments, newComment];
+    setComments(updated);
+    if (contractAddress) {
+      try {
+        localStorage.setItem(`whisperboard_comments_${contractAddress}`, JSON.stringify(updated));
+      } catch (err) {
+        console.error('Failed to save comment:', err);
+      }
+    }
+    setReplyText('');
   };
 
   if (!boardDeployment$) {
@@ -199,229 +266,343 @@ export const Board: React.FC<Readonly<BoardProps>> = ({ boardDeployment$ }) => {
   return (
     <Box
       sx={{
-        display: 'flex',
-        gap: 1.5,
-        p: 2,
         borderBottom: '1px solid #2f3336',
         bgcolor: '#000000',
-        transition: 'background-color 0.15s ease',
-        '&:hover': {
-          bgcolor: 'rgba(231, 233, 234, 0.03)',
-        },
-        position: 'relative',
       }}
     >
-      {/* Left: Avatar */}
-      <Avatar
+      {/* Main Tweet Post Container */}
+      <Box
         sx={{
-          width: 40,
-          height: 40,
-          bgcolor: avatar.bg,
-          color: '#ffffff',
-          fontWeight: 800,
-          fontSize: '0.85rem',
-          flexShrink: 0,
+          display: 'flex',
+          gap: 1.5,
+          p: 2,
+          transition: 'background-color 0.15s ease',
+          '&:hover': {
+            bgcolor: 'rgba(231, 233, 234, 0.03)',
+          },
         }}
       >
-        {avatar.initials}
-      </Avatar>
+        {/* Left: Avatar */}
+        <Avatar
+          sx={{
+            width: 40,
+            height: 40,
+            bgcolor: avatar.bg,
+            color: '#ffffff',
+            fontWeight: 800,
+            fontSize: '0.85rem',
+            flexShrink: 0,
+          }}
+        >
+          {avatar.initials}
+        </Avatar>
 
-      {/* Right: Tweet Content */}
-      <Box sx={{ flex: 1, minWidth: 0 }}>
-        {/* Header Row: Name · Handle · Time · ZK Badge */}
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, flexWrap: 'wrap' }}>
-            <Typography sx={{ fontWeight: 700, fontSize: '0.9375rem', color: '#e7e9ea' }}>
-              {avatar.tag}
-            </Typography>
-            <Typography sx={{ fontSize: '0.9375rem', color: '#71767b' }}>
-              {avatar.handle}
-            </Typography>
-            <Typography sx={{ fontSize: '0.9375rem', color: '#71767b' }}>
-              ·
-            </Typography>
+        {/* Right: Tweet Content */}
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          {/* Header Row: Name · Handle · Time · ZK Badge */}
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, flexWrap: 'wrap' }}>
+              <Typography sx={{ fontWeight: 700, fontSize: '0.9375rem', color: '#e7e9ea' }}>
+                {avatar.tag}
+              </Typography>
+              <Typography sx={{ fontSize: '0.9375rem', color: '#71767b' }}>
+                {avatar.handle}
+              </Typography>
+              <Typography sx={{ fontSize: '0.9375rem', color: '#71767b' }}>
+                ·
+              </Typography>
 
-            {/* Cryptographic hash pill */}
-            {contractAddress && (
-              <Tooltip title={copied ? 'Copied full contract address!' : 'Click to copy contract address'}>
-                <Box
-                  onClick={handleCopyAddress}
+              {/* Cryptographic hash pill */}
+              {contractAddress && (
+                <Tooltip title={copied ? 'Copied full contract address!' : 'Click to copy contract address'}>
+                  <Box
+                    onClick={handleCopyAddress}
+                    sx={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 0.4,
+                      px: 0.8,
+                      py: 0.1,
+                      borderRadius: 9999,
+                      bgcolor: '#16181c',
+                      border: '1px solid #2f3336',
+                      cursor: 'pointer',
+                      '&:hover': {
+                        borderColor: '#71767b',
+                        bgcolor: '#202327',
+                      },
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        color: copied ? '#00ba7c' : '#71767b',
+                        fontFamily: 'monospace',
+                        fontSize: '0.72rem',
+                      }}
+                    >
+                      {contractAddress.slice(0, 6)}...{contractAddress.slice(-4)}
+                    </Typography>
+                    {copied ? (
+                      <CheckIcon sx={{ fontSize: 10, color: '#00ba7c' }} />
+                    ) : (
+                      <ContentCopyIcon sx={{ fontSize: 9, color: '#71767b' }} />
+                    )}
+                  </Box>
+                </Tooltip>
+              )}
+
+              {/* Author ZK Pill Badge */}
+              {isOwner && (
+                <Tooltip title="You hold the private witness for this post. Only you can delete it.">
+                  <Box
+                    sx={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 0.4,
+                      px: 0.8,
+                      py: 0.1,
+                      borderRadius: 9999,
+                      bgcolor: 'rgba(139, 92, 246, 0.12)',
+                      border: '1px solid rgba(139, 92, 246, 0.35)',
+                    }}
+                  >
+                    <LockIcon sx={{ fontSize: 10, color: '#a78bfa' }} />
+                    <Typography sx={{ fontSize: '0.68rem', fontWeight: 700, color: '#c4b5fd', fontFamily: 'monospace' }}>
+                      Author
+                    </Typography>
+                  </Box>
+                </Tooltip>
+              )}
+            </Box>
+          </Box>
+
+          {/* Message Text */}
+          <Typography
+            data-testid="board-posted-message"
+            sx={{
+              color: '#e7e9ea',
+              fontSize: '0.9375rem',
+              lineHeight: 1.5,
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-word',
+              my: 0.5,
+            }}
+          >
+            {boardState?.message}
+          </Typography>
+
+          {/* Twitter Action Bar: Reply, Like, Share, Delete (Repost removed) */}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              maxWidth: 360,
+              mt: 1.2,
+              color: '#71767b',
+            }}
+          >
+            {/* Reply / Comment Trigger */}
+            <Box
+              onClick={handleToggleReply}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 0.6,
+                cursor: 'pointer',
+                color: showReplyBox || comments.length > 0 ? '#1d9bf0' : 'inherit',
+                '&:hover': { color: '#1d9bf0' },
+              }}
+            >
+              <IconButton size="small" sx={{ color: 'inherit', p: 0.6, '&:hover': { bgcolor: 'rgba(29, 155, 240, 0.1)' } }}>
+                <ChatBubbleOutlinedIcon sx={{ fontSize: 18 }} />
+              </IconButton>
+              {comments.length > 0 && (
+                <Typography sx={{ fontSize: '0.8rem', fontWeight: 600 }}>
+                  {comments.length}
+                </Typography>
+              )}
+            </Box>
+
+            {/* Like */}
+            <Box
+              onClick={handleToggleLike}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 0.6,
+                cursor: 'pointer',
+                color: liked ? '#f91880' : 'inherit',
+                '&:hover': { color: '#f91880' },
+              }}
+            >
+              <IconButton size="small" sx={{ color: 'inherit', p: 0.6, '&:hover': { bgcolor: 'rgba(249, 24, 128, 0.1)' } }}>
+                {liked ? <FavoriteIcon sx={{ fontSize: 18 }} /> : <FavoriteBorderIcon sx={{ fontSize: 18 }} />}
+              </IconButton>
+              {likeCount > 0 && (
+                <Typography sx={{ fontSize: '0.8rem' }}>
+                  {likeCount}
+                </Typography>
+              )}
+            </Box>
+
+            {/* Share */}
+            <Box
+              onClick={handleCopyAddress}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 0.6,
+                cursor: 'pointer',
+                '&:hover': { color: '#1d9bf0' },
+              }}
+            >
+              <IconButton size="small" sx={{ color: 'inherit', p: 0.6, '&:hover': { bgcolor: 'rgba(29, 155, 240, 0.1)' } }}>
+                <IosShareIcon sx={{ fontSize: 18 }} />
+              </IconButton>
+            </Box>
+
+            {/* Author-only Delete */}
+            {isOwner && (
+              <Tooltip title="Delete post (Authorized via ZK Proof)">
+                <IconButton
+                  onClick={onDeleteMessage}
+                  disabled={isWorking}
+                  size="small"
+                  data-testid="board-take-down-message-btn"
                   sx={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 0.4,
-                    px: 0.8,
-                    py: 0.1,
-                    borderRadius: 9999,
-                    bgcolor: '#16181c',
-                    border: '1px solid #2f3336',
-                    cursor: 'pointer',
+                    color: '#71767b',
+                    p: 0.6,
                     '&:hover': {
-                      borderColor: '#71767b',
-                      bgcolor: '#202327',
+                      color: '#f4212e',
+                      bgcolor: 'rgba(244, 33, 46, 0.1)',
                     },
                   }}
                 >
-                  <Typography
-                    sx={{
-                      color: copied ? '#00ba7c' : '#71767b',
-                      fontFamily: 'monospace',
-                      fontSize: '0.72rem',
-                    }}
-                  >
-                    {contractAddress.slice(0, 6)}...{contractAddress.slice(-4)}
-                  </Typography>
-                  {copied ? (
-                    <CheckIcon sx={{ fontSize: 10, color: '#00ba7c' }} />
-                  ) : (
-                    <ContentCopyIcon sx={{ fontSize: 9, color: '#71767b' }} />
-                  )}
-                </Box>
-              </Tooltip>
-            )}
-
-            {/* Author ZK Pill Badge */}
-            {isOwner && (
-              <Tooltip title="You hold the private witness for this post. Only you can delete it.">
-                <Box
-                  sx={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 0.4,
-                    px: 0.8,
-                    py: 0.1,
-                    borderRadius: 9999,
-                    bgcolor: 'rgba(139, 92, 246, 0.12)',
-                    border: '1px solid rgba(139, 92, 246, 0.35)',
-                  }}
-                >
-                  <LockIcon sx={{ fontSize: 10, color: '#a78bfa' }} />
-                  <Typography sx={{ fontSize: '0.68rem', fontWeight: 700, color: '#c4b5fd', fontFamily: 'monospace' }}>
-                    Author
-                  </Typography>
-                </Box>
+                  <DeleteOutlinedIcon sx={{ fontSize: 18 }} />
+                </IconButton>
               </Tooltip>
             )}
           </Box>
-        </Box>
-
-        {/* Message Text */}
-        <Typography
-          data-testid="board-posted-message"
-          sx={{
-            color: '#e7e9ea',
-            fontSize: '0.9375rem',
-            lineHeight: 1.5,
-            whiteSpace: 'pre-wrap',
-            wordBreak: 'break-word',
-            my: 0.5,
-          }}
-        >
-          {boardState?.message}
-        </Typography>
-
-        {/* Twitter Action Bar: Reply, Repost, Like, Share, Delete */}
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            maxWidth: 420,
-            mt: 1.2,
-            color: '#71767b',
-          }}
-        >
-          {/* Reply */}
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 0.6,
-              cursor: 'pointer',
-              '&:hover': { color: '#1d9bf0' },
-            }}
-          >
-            <IconButton size="small" sx={{ color: 'inherit', p: 0.6, '&:hover': { bgcolor: 'rgba(29, 155, 240, 0.1)' } }}>
-              <ChatBubbleOutlinedIcon sx={{ fontSize: 18 }} />
-            </IconButton>
-          </Box>
-
-          {/* Repost */}
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 0.6,
-              cursor: 'pointer',
-              '&:hover': { color: '#00ba7c' },
-            }}
-          >
-            <IconButton size="small" sx={{ color: 'inherit', p: 0.6, '&:hover': { bgcolor: 'rgba(0, 186, 124, 0.1)' } }}>
-              <RepeatIcon sx={{ fontSize: 18 }} />
-            </IconButton>
-          </Box>
-
-          {/* Like */}
-          <Box
-            onClick={handleToggleLike}
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 0.6,
-              cursor: 'pointer',
-              color: liked ? '#f91880' : 'inherit',
-              '&:hover': { color: '#f91880' },
-            }}
-          >
-            <IconButton size="small" sx={{ color: 'inherit', p: 0.6, '&:hover': { bgcolor: 'rgba(249, 24, 128, 0.1)' } }}>
-              {liked ? <FavoriteIcon sx={{ fontSize: 18 }} /> : <FavoriteBorderIcon sx={{ fontSize: 18 }} />}
-            </IconButton>
-            {likeCount > 0 && (
-              <Typography sx={{ fontSize: '0.8rem' }}>
-                {likeCount}
-              </Typography>
-            )}
-          </Box>
-
-          {/* Share */}
-          <Box
-            onClick={handleCopyAddress}
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 0.6,
-              cursor: 'pointer',
-              '&:hover': { color: '#1d9bf0' },
-            }}
-          >
-            <IconButton size="small" sx={{ color: 'inherit', p: 0.6, '&:hover': { bgcolor: 'rgba(29, 155, 240, 0.1)' } }}>
-              <IosShareIcon sx={{ fontSize: 18 }} />
-            </IconButton>
-          </Box>
-
-          {/* Author-only Delete */}
-          {isOwner && (
-            <Tooltip title="Delete post (Authorized via ZK Proof)">
-              <IconButton
-                onClick={onDeleteMessage}
-                disabled={isWorking}
-                size="small"
-                data-testid="board-take-down-message-btn"
-                sx={{
-                  color: '#71767b',
-                  p: 0.6,
-                  '&:hover': {
-                    color: '#f4212e',
-                    bgcolor: 'rgba(244, 33, 46, 0.1)',
-                  },
-                }}
-              >
-                <DeleteOutlinedIcon sx={{ fontSize: 18 }} />
-              </IconButton>
-            </Tooltip>
-          )}
         </Box>
       </Box>
+
+      {/* Inline Reply / Comment Box */}
+      {showReplyBox && (
+        <Box
+          component="form"
+          onSubmit={handleSubmitReply}
+          sx={{
+            display: 'flex',
+            gap: 1.5,
+            px: 2.5,
+            py: 1.5,
+            bgcolor: 'rgba(22, 24, 28, 0.6)',
+            borderTop: '1px solid rgba(47, 51, 54, 0.6)',
+            borderBottom: comments.length > 0 ? '1px solid rgba(47, 51, 54, 0.6)' : 'none',
+          }}
+        >
+          <Avatar
+            sx={{
+              width: 32,
+              height: 32,
+              bgcolor: '#2f3336',
+              fontSize: '0.75rem',
+              flexShrink: 0,
+            }}
+          >
+            💬
+          </Avatar>
+          <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+            <TextField
+              fullWidth
+              size="small"
+              placeholder={`Post your reply to ${avatar.tag}...`}
+              value={replyText}
+              onChange={(e) => setReplyText(e.target.value)}
+              variant="standard"
+              autoFocus
+              slotProps={{
+                input: {
+                  disableUnderline: true,
+                  sx: {
+                    color: '#e7e9ea',
+                    fontSize: '0.9rem',
+                    bgcolor: 'transparent',
+                    p: 0.5,
+                  },
+                },
+              }}
+            />
+            <Button
+              type="submit"
+              variant="contained"
+              color="primary"
+              disabled={!replyText.trim()}
+              size="small"
+              sx={{
+                px: 2,
+                py: 0.5,
+                borderRadius: 9999,
+                fontSize: '0.8rem',
+                fontWeight: 700,
+                flexShrink: 0,
+              }}
+            >
+              Reply
+            </Button>
+          </Box>
+        </Box>
+      )}
+
+      {/* Threaded Comments List */}
+      {comments.length > 0 && (
+        <Box sx={{ bgcolor: 'rgba(0, 0, 0, 0.4)' }}>
+          {comments.map((c) => (
+            <Box
+              key={c.id}
+              sx={{
+                display: 'flex',
+                gap: 1.5,
+                px: 2.5,
+                py: 1.2,
+                pl: 6.5, // Indented thread layout
+                borderTop: '1px solid rgba(47, 51, 54, 0.3)',
+                '&:hover': { bgcolor: 'rgba(231, 233, 234, 0.02)' },
+              }}
+            >
+              <Avatar
+                sx={{
+                  width: 26,
+                  height: 26,
+                  bgcolor: '#1d9bf0',
+                  fontSize: '0.65rem',
+                  fontWeight: 700,
+                  flexShrink: 0,
+                }}
+              >
+                A
+              </Avatar>
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 0.2 }}>
+                  <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', color: '#e7e9ea' }}>
+                    {c.tag}
+                  </Typography>
+                  <Typography sx={{ fontSize: '0.8rem', color: '#71767b' }}>
+                    {c.handle}
+                  </Typography>
+                  <Typography sx={{ fontSize: '0.8rem', color: '#71767b' }}>
+                    · {c.timestamp}
+                  </Typography>
+                </Box>
+                <Typography sx={{ color: '#e7e9ea', fontSize: '0.875rem', lineHeight: 1.4 }}>
+                  {c.text}
+                </Typography>
+              </Box>
+            </Box>
+          ))}
+        </Box>
+      )}
     </Box>
   );
 };
