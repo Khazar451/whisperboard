@@ -1,6 +1,6 @@
 // WhisperBoard — Post Row (Authentic X / Twitter Style with Reliable Message Rendering & Threaded Comments)
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { type ContractAddress } from '@midnight-ntwrk/midnight-js-protocol/compact-runtime';
 import {
   Box,
@@ -78,6 +78,8 @@ export const Board: React.FC<Readonly<BoardProps>> = ({ boardDeployment$ }) => {
   // Threaded Comments State
   const [showReplyBox, setShowReplyBox] = useState(false);
   const [replyText, setReplyText] = useState('');
+  const replyInputRef = useRef<HTMLInputElement>(null);
+
   const contractAddress = deployedBoardAPI?.deployedContractAddress ?? '';
 
   // Local caching for instant message display
@@ -144,6 +146,15 @@ export const Board: React.FC<Readonly<BoardProps>> = ({ boardDeployment$ }) => {
     };
   }, [boardDeployment]);
 
+  // Focus reply input when reply box opens
+  useEffect(() => {
+    if (showReplyBox) {
+      setTimeout(() => {
+        replyInputRef.current?.focus();
+      }, 100);
+    }
+  }, [showReplyBox]);
+
   const onDeleteMessage = useCallback(async () => {
     try {
       if (deployedBoardAPI) {
@@ -173,13 +184,14 @@ export const Board: React.FC<Readonly<BoardProps>> = ({ boardDeployment$ }) => {
 
   const handleToggleLike = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setLiked(!liked);
-    setLikeCount(liked ? likeCount - 1 : likeCount + 1);
+    setLiked((prev) => !prev);
+    setLikeCount((prev) => (liked ? prev - 1 : prev + 1));
   };
 
   const handleToggleReply = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setShowReplyBox(!showReplyBox);
+    e.preventDefault();
+    setShowReplyBox((prev) => !prev);
   };
 
   const handleSubmitReply = (e: React.FormEvent) => {
@@ -204,6 +216,7 @@ export const Board: React.FC<Readonly<BoardProps>> = ({ boardDeployment$ }) => {
       }
     }
     setReplyText('');
+    setShowReplyBox(true); // Keep thread open
   };
 
   if (!boardDeployment$) {
@@ -274,7 +287,8 @@ export const Board: React.FC<Readonly<BoardProps>> = ({ boardDeployment$ }) => {
   }
 
   const isOwner = !!boardState?.isOwner;
-  const displayMessage = boardState?.message || cachedMessage;
+  const rawMessage = boardState?.message || cachedMessage;
+  const displayMessage = rawMessage || (boardState ? 'Shielded whisper' : '');
 
   return (
     <Box
@@ -406,7 +420,9 @@ export const Board: React.FC<Readonly<BoardProps>> = ({ boardDeployment$ }) => {
             </Typography>
           ) : (
             <Box sx={{ my: 1 }}>
-              <Skeleton variant="text" width="90%" height={22} sx={{ bgcolor: '#16181c' }} />
+              <Typography sx={{ color: '#71767b', fontSize: '0.9rem', fontStyle: 'italic' }}>
+                Shielded whisper
+              </Typography>
             </Box>
           )}
 
@@ -422,64 +438,82 @@ export const Board: React.FC<Readonly<BoardProps>> = ({ boardDeployment$ }) => {
             }}
           >
             {/* Reply / Comment Trigger */}
-            <Box
-              onClick={handleToggleReply}
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 0.6,
-                cursor: 'pointer',
-                color: showReplyBox || comments.length > 0 ? '#1d9bf0' : 'inherit',
-                '&:hover': { color: '#1d9bf0' },
-              }}
-            >
-              <IconButton size="small" sx={{ color: 'inherit', p: 0.6, '&:hover': { bgcolor: 'rgba(29, 155, 240, 0.1)' } }}>
-                <ChatBubbleOutlinedIcon sx={{ fontSize: 18 }} />
-              </IconButton>
-              {comments.length > 0 && (
-                <Typography sx={{ fontSize: '0.8rem', fontWeight: 600 }}>
-                  {comments.length}
-                </Typography>
-              )}
-            </Box>
+            <Tooltip title="Reply / Comment">
+              <Box
+                onClick={handleToggleReply}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 0.6,
+                  cursor: 'pointer',
+                  color: showReplyBox || comments.length > 0 ? '#1d9bf0' : 'inherit',
+                  '&:hover': { color: '#1d9bf0' },
+                }}
+              >
+                <IconButton
+                  onClick={handleToggleReply}
+                  size="small"
+                  sx={{
+                    color: showReplyBox ? '#1d9bf0' : 'inherit',
+                    p: 0.6,
+                    '&:hover': { bgcolor: 'rgba(29, 155, 240, 0.1)', color: '#1d9bf0' },
+                  }}
+                >
+                  <ChatBubbleOutlinedIcon sx={{ fontSize: 18 }} />
+                </IconButton>
+                {comments.length > 0 && (
+                  <Typography sx={{ fontSize: '0.8rem', fontWeight: 600 }}>
+                    {comments.length}
+                  </Typography>
+                )}
+              </Box>
+            </Tooltip>
 
             {/* Like */}
-            <Box
-              onClick={handleToggleLike}
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 0.6,
-                cursor: 'pointer',
-                color: liked ? '#f91880' : 'inherit',
-                '&:hover': { color: '#f91880' },
-              }}
-            >
-              <IconButton size="small" sx={{ color: 'inherit', p: 0.6, '&:hover': { bgcolor: 'rgba(249, 24, 128, 0.1)' } }}>
-                {liked ? <FavoriteIcon sx={{ fontSize: 18 }} /> : <FavoriteBorderIcon sx={{ fontSize: 18 }} />}
-              </IconButton>
-              {likeCount > 0 && (
-                <Typography sx={{ fontSize: '0.8rem' }}>
-                  {likeCount}
-                </Typography>
-              )}
-            </Box>
+            <Tooltip title="Like">
+              <Box
+                onClick={handleToggleLike}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 0.6,
+                  cursor: 'pointer',
+                  color: liked ? '#f91880' : 'inherit',
+                  '&:hover': { color: '#f91880' },
+                }}
+              >
+                <IconButton
+                  onClick={handleToggleLike}
+                  size="small"
+                  sx={{ color: liked ? '#f91880' : 'inherit', p: 0.6, '&:hover': { bgcolor: 'rgba(249, 24, 128, 0.1)' } }}
+                >
+                  {liked ? <FavoriteIcon sx={{ fontSize: 18 }} /> : <FavoriteBorderIcon sx={{ fontSize: 18 }} />}
+                </IconButton>
+                {likeCount > 0 && (
+                  <Typography sx={{ fontSize: '0.8rem' }}>
+                    {likeCount}
+                  </Typography>
+                )}
+              </Box>
+            </Tooltip>
 
             {/* Share */}
-            <Box
-              onClick={handleCopyAddress}
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 0.6,
-                cursor: 'pointer',
-                '&:hover': { color: '#1d9bf0' },
-              }}
-            >
-              <IconButton size="small" sx={{ color: 'inherit', p: 0.6, '&:hover': { bgcolor: 'rgba(29, 155, 240, 0.1)' } }}>
-                <IosShareIcon sx={{ fontSize: 18 }} />
-              </IconButton>
-            </Box>
+            <Tooltip title="Copy address">
+              <Box
+                onClick={handleCopyAddress}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 0.6,
+                  cursor: 'pointer',
+                  '&:hover': { color: '#1d9bf0' },
+                }}
+              >
+                <IconButton size="small" sx={{ color: 'inherit', p: 0.6, '&:hover': { bgcolor: 'rgba(29, 155, 240, 0.1)' } }}>
+                  <IosShareIcon sx={{ fontSize: 18 }} />
+                </IconButton>
+              </Box>
+            </Tooltip>
 
             {/* Author-only Delete */}
             {isOwner && (
@@ -516,9 +550,9 @@ export const Board: React.FC<Readonly<BoardProps>> = ({ boardDeployment$ }) => {
             gap: 1.5,
             px: 2.5,
             py: 1.5,
-            bgcolor: 'rgba(22, 24, 28, 0.6)',
-            borderTop: '1px solid rgba(47, 51, 54, 0.6)',
-            borderBottom: comments.length > 0 ? '1px solid rgba(47, 51, 54, 0.6)' : 'none',
+            bgcolor: '#16181c',
+            borderTop: '1px solid #2f3336',
+            borderBottom: comments.length > 0 ? '1px solid #2f3336' : 'none',
           }}
         >
           <Avatar
@@ -526,7 +560,7 @@ export const Board: React.FC<Readonly<BoardProps>> = ({ boardDeployment$ }) => {
               width: 32,
               height: 32,
               bgcolor: '#2f3336',
-              color: '#71767b',
+              color: '#1d9bf0',
               flexShrink: 0,
             }}
           >
@@ -534,13 +568,13 @@ export const Board: React.FC<Readonly<BoardProps>> = ({ boardDeployment$ }) => {
           </Avatar>
           <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
             <TextField
+              inputRef={replyInputRef}
               fullWidth
               size="small"
               placeholder={`Post your reply to ${avatar.tag}...`}
               value={replyText}
               onChange={(e) => setReplyText(e.target.value)}
               variant="standard"
-              autoFocus
               slotProps={{
                 input: {
                   disableUnderline: true,
@@ -576,7 +610,7 @@ export const Board: React.FC<Readonly<BoardProps>> = ({ boardDeployment$ }) => {
 
       {/* Threaded Comments List */}
       {comments.length > 0 && (
-        <Box sx={{ bgcolor: 'rgba(0, 0, 0, 0.4)' }}>
+        <Box sx={{ bgcolor: '#0a0a0a' }}>
           {comments.map((c) => (
             <Box
               key={c.id}
@@ -586,7 +620,7 @@ export const Board: React.FC<Readonly<BoardProps>> = ({ boardDeployment$ }) => {
                 px: 2.5,
                 py: 1.2,
                 pl: 6.5,
-                borderTop: '1px solid rgba(47, 51, 54, 0.3)',
+                borderTop: '1px solid rgba(47, 51, 54, 0.4)',
                 '&:hover': { bgcolor: 'rgba(231, 233, 234, 0.02)' },
               }}
             >
