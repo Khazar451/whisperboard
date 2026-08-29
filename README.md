@@ -9,8 +9,8 @@
 ---
 
 ##  Quick Links
--  **Demo Video (≤ 2 Min):** *(in progress)*
--  **Devpost Submission:** *(in progress)*
+-  **Demo Video (≤ 2 Min):** *(https://www.youtube.com/watch?v=rgt2bESOK5c)*
+-  **Devpost Submission:** *
 -  **Midnight Documentation:** [docs.midnight.network ↗](https://docs.midnight.network/)
 
 ---
