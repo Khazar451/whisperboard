@@ -9,8 +9,8 @@
 ---
 
 ##  Quick Links
--  **Demo Video (≤ 2 Min):** [Watch Demo Video (YouTube / Loom) ↗](https://youtu.be/placeholder-demo-video) *(Replace with your link)*
--  **Devpost Submission:** [View on Devpost ↗](https://devpost.com/software/placeholder-whisperboard) *(Replace with your link)*
+-  **Demo Video (≤ 2 Min):** *(in progress)*
+-  **Devpost Submission:** *(in progress)*
 -  **Midnight Documentation:** [docs.midnight.network ↗](https://docs.midnight.network/)
 
 ---
